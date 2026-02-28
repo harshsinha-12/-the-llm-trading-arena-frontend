@@ -192,3 +192,230 @@ a:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* ─── Margin additions ───────────────────────────────────────── */
+.mb-1  { margin-bottom: 0.25rem; }
+.mb-2  { margin-bottom: 0.5rem; }
+.mb-3  { margin-bottom: 0.75rem; }
+.mb-6  { margin-bottom: 1.5rem; }
+.mt-1  { margin-top: 0.25rem; }
+.mt-2  { margin-top: 0.5rem; }
+.mt-4  { margin-top: 1rem; }
+.mt-6  { margin-top: 1.5rem; }
+.mt-8  { margin-top: 2rem; }
+.ml-2  { margin-left: 0.5rem; }
+.ml-4  { margin-left: 1rem; }
+.mr-2  { margin-right: 0.5rem; }
+.mr-4  { margin-right: 1rem; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+
+/* ─── Padding additions ──────────────────────────────────────── */
+.py-1  { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+.py-3  { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+.py-6  { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+.px-1  { padding-left: 0.25rem; padding-right: 0.25rem; }
+.px-3  { padding-left: 0.75rem; padding-right: 0.75rem; }
+.px-6  { padding-left: 1.5rem; padding-right: 1.5rem; }
+.pb-2  { padding-bottom: 0.5rem; }
+.pb-4  { padding-bottom: 1rem; }
+.pb-6  { padding-bottom: 1.5rem; }
+.pb-8  { padding-bottom: 2rem; }
+.pt-2  { padding-top: 0.5rem; }
+.pt-4  { padding-top: 1rem; }
+.pt-6  { padding-top: 1.5rem; }
+.pt-8  { padding-top: 2rem; }
+
+/* ─── Gap ────────────────────────────────────────────────────── */
+.gap-1 { gap: 0.25rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-8 { gap: 2rem; }
+
+/* ─── Typography ─────────────────────────────────────────────── */
+.text-center   { text-align: center; }
+.text-right    { text-align: right; }
+.text-left     { text-align: left; }
+.text-base     { font-size: 1rem; }
+.uppercase     { text-transform: uppercase; }
+.tracking-wide { letter-spacing: 0.05em; }
+.text-white    { color: #fff; }
+.text-black    { color: #000; }
+.italic        { font-style: italic; }
+
+/* ─── Colors ─────────────────────────────────────────────────── */
+.bg-white { background-color: #fff; }
+
+/* ─── Display ────────────────────────────────────────────────── */
+.inline-block { display: inline-block; }
+.block        { display: block; }
+.hidden       { display: none; }
+
+/* ─── Size ───────────────────────────────────────────────────── */
+.min-h-screen { min-height: 100vh; }
+.w-2  { width: 0.5rem; }
+.h-2  { height: 0.5rem; }
+.w-3  { width: 0.75rem; }
+.h-3  { height: 0.75rem; }
+.w-4  { width: 1rem; }
+.h-4  { height: 1rem; }
+
+/* ─── Cursor ─────────────────────────────────────────────────── */
+.cursor-pointer { cursor: pointer; }
+
+/* ─── Hover ──────────────────────────────────────────────────── */
+.hover\:bg-black:hover   { background-color: #000; color: #fbfbfb; }
+.hover\:text-white:hover { color: #fbfbfb; }
+.transition-colors { transition: background-color 0.15s ease, color 0.15s ease; }
+
+/* ─── Flex extras ────────────────────────────────────────────── */
+.flex-wrap    { flex-wrap: wrap; }
+.flex-shrink-0 { flex-shrink: 0; }
+.items-start  { align-items: flex-start; }
+.items-end    { align-items: flex-end; }
+.self-start   { align-self: flex-start; }
+.space-x-6 > * + * { margin-left: 1.5rem; }
+
+/* ─── Overflow ───────────────────────────────────────────────── */
+.overflow-x-auto { overflow-x: auto; }
+.overflow-hidden { overflow: hidden; }
+
+/* ─── Position ───────────────────────────────────────────────── */
+.relative { position: relative; }
+.absolute { position: absolute; }
+.sticky   { position: sticky; }
+.top-0    { top: 0; }
+.z-10     { z-index: 10; }
+
+/* ─── Text extras ────────────────────────────────────────────── */
+.whitespace-nowrap { white-space: nowrap; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ─── Grid extras ────────────────────────────────────────────── */
+.grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.col-span-2  { grid-column: span 2; }
+.col-span-3  { grid-column: span 3; }
+
+/* ─── Border radius ──────────────────────────────────────────── */
+.rounded { border-radius: 0.25rem; }
+
+/* ─── Opacity ────────────────────────────────────────────────── */
+.opacity-50 { opacity: 0.5; }
+.opacity-70 { opacity: 0.7; }
+
+/* ─── Table ──────────────────────────────────────────────────── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+  font-weight: bold;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 2px solid #000;
+  border-top: 2px solid #000;
+  padding: 0.6rem 1rem;
+  white-space: nowrap;
+  background-color: #f5f5f5;
+}
+
+td {
+  padding: 0.55rem 1rem;
+  border-bottom: 1px solid #ddd;
+  font-size: 0.85rem;
+  vertical-align: middle;
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover td { background-color: #f9f9f9; }
+
+/* ─── Stat card ──────────────────────────────────────────────── */
+.stat-card {
+  border: 2px solid #000;
+  padding: 0.75rem 1rem;
+}
+
+.stat-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 0.65rem;
+  color: var(--muted-text);
+  margin-top: 0.2rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ─── Side badge (BUY / SELL tag) ───────────────────────────── */
+.side-badge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.7rem;
+  font-weight: bold;
+  border: 1.5px solid;
+}
+
+.side-badge.buy  { color: var(--accent-green); border-color: var(--accent-green); }
+.side-badge.sell { color: var(--accent-red);   border-color: var(--accent-red); }
+
+/* ─── Ticker stock link ──────────────────────────────────────── */
+.ticker-stock {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0.25rem 1rem;
+  text-decoration: none;
+  color: #000;
+  cursor: pointer;
+  min-width: 110px;
+  transition: background-color 0.12s;
+}
+.ticker-stock:hover { background-color: #f0f0f0; }
+
+/* ─── Portfolio card footer link ─────────────────────────────── */
+.card-footer-link {
+  flex: 1;
+  padding: 0.4rem;
+  text-align: center;
+  font-size: 0.72rem;
+  color: #000;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background-color 0.12s;
+}
+.card-footer-link:hover { background-color: #000; color: #fbfbfb; }
+
+/* ─── Empty-state box ───────────────────────────────────────── */
+.empty-state {
+  border: 2px solid #000;
+  padding: 3rem 2rem;
+  text-align: center;
+  background: #fafafa;
+}
+
+.empty-state p { margin-bottom: 0.5rem; }
+.empty-state code {
+  font-family: "JetBrains Mono", monospace;
+  background: #eee;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.75rem;
+}
+
+/* ─── Layout variant with left sidebar ──────────────────────── */
+.layout-sidebar {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: calc(100vh - 90px);
+}
+
+@media (max-width: 768px) {
+  .layout-sidebar { grid-template-columns: 1fr; }
+}
