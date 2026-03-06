@@ -25,3 +25,7 @@ export function modelChatKey(runId: string, modelId: string) {
 export function tickSnapshotKey(runId: string, tickId: string) {
     return `run:${runId}:tick:${tickId}:snapshot`
 }
+
+export function modelPfAnalyticsKey(runId: string, modelId: string) {
+    return `run:${runId}:model:${modelId}:pf-analytics`
+}

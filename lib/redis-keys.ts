@@ -22,3 +22,7 @@ export function newsKey(mbCode: string): string {
 export function constituentsKey(indexMBCode: string): string {
     return `${REDIS_KEY_PREFIX.CONSTITUENTS}:${indexMBCode}`;
 }
+
+export function quoteKey(mbCode: string): string {
+    return `quote:${mbCode}`;
+}

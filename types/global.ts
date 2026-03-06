@@ -137,3 +137,62 @@ export type LeaderboardEntry = {
     nav: number
     numTrades?: number
 }
+
+// ─── LLM trade decision types ─────────────────────────────────────────────────
+
+export type Order = {
+    symbol: string;
+    action: "BUY" | "SELL" | "HOLD";
+    quantity: number;
+    rationale: string;
+};
+
+export type RiskControls = {
+    maxNewPositions?: number;
+    stopLossSymbols?: string[];
+    profitTargetSymbols?: string[];
+};
+
+export type TradeDecision = {
+    orders: Order[];
+    risk_controls: RiskControls;
+    rationale: string;
+    confidence: number; // 0.0 – 1.0
+};
+
+// Rich portfolio analytics — computed from ModelState + Trade history, saved to Redis
+// for use as LLM context on each tick.
+export type PortfolioAnalytics = {
+    modelId: string
+    runId: string
+    computedAt: string
+
+    // Allocation
+    cashPct: number           // cash / nav
+    exposurePct: number       // invested / nav
+    numOpenPositions: number
+
+    // Concentration
+    hhi: number               // Herfindahl-Hirschman Index (0=diversified, 1=concentrated)
+
+    // Unrealized (live positions)
+    unrealizedPnL: number
+    unrealizedPnLPct: number
+    avgMAE: number            // avg max adverse excursion across positions (negative %)
+    avgMFE: number            // avg max favorable excursion across positions (positive %)
+    portfolioVolatilityProxy: number  // weighted avg |pnlPct| across positions
+
+    // Realized (closed trades)
+    realizedPnL: number
+    winRate: number           // % of closed trades with pnl > 0
+    avgWin: number            // mean pnl of winning trades
+    avgLoss: number           // mean pnl of losing trades (negative value)
+    profitFactor: number      // gross profit / abs(gross loss), Infinity if no losses
+
+    // Pass-through from ModelMetrics
+    totalReturn: number
+    maxDrawdown: number
+    drawdownDuration: number
+    turnoverCost: number
+    score: number
+}

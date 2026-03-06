@@ -8,10 +8,8 @@ export const TICKER_STOCKS = [
     { mbCode: "MBEQU2325", symbol: "TCS", name: "Tata Consultancy Services" },
 ] as const;
 
-// Season 1 model definitions — used as fallback when run:season1:config is absent
+// Season 1 model definitions — used as fallback when run:season1:config is absent.
+// Each entry represents one LLM competitor. Add more models here as the arena scales.
 export const SEASON1_MODELS = [
-    { modelId: "mean-rev",  name: "Mean Rev",   color: "#e6e6fa", strategy: "Mean Reversion"   },
-    { modelId: "trend-fol", name: "Trend Fol",  color: "#e6f7ff", strategy: "Trend Following"  },
-    { modelId: "sentiment", name: "Sentiment",  color: "#fff0f6", strategy: "Sentiment/News"   },
-    { modelId: "macro",     name: "Macro",      color: "#f6ffed", strategy: "Macro"            },
+    { modelId: "gpt-5-2", name: "GPT-5.2", color: "#e6e6fa", strategy: "Quantitative Trading" },
 ] as const;

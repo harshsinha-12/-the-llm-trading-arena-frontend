@@ -1,11 +1,43 @@
 import Header from "@/app/components/Header";
 import { getRedisClient } from "@/lib/redis";
 import { ACTIVE_RUN_ID } from "@/config";
-import { modelStateKey, runConfigKey } from "@/lib/run-redis-keys";
-import { ModelState, RunConfig } from "@/types/global";
+import { modelStateKey, modelTradesKey, runConfigKey } from "@/lib/run-redis-keys";
+import { ohlcKey } from "@/lib/redis-keys";
+import { ModelState, RunConfig, Trade, PortfolioAnalytics, OHLC, Position } from "@/types/global";
+import { computePortfolioAnalytics, savePortfolioAnalytics } from "@/lib/portfolio-analytics";
 import Link from "next/link";
 
 const MODEL_COLORS = ["#e6e6fa", "#e6f7ff", "#fff0f6", "#f6ffed"];
+
+// ─── helpers ────────────────────────────────────────────────────────────────
+
+async function enrichWithCurrentPrices(
+  client: Awaited<ReturnType<typeof getRedisClient>>,
+  state: ModelState
+): Promise<ModelState> {
+  const enrichedPositions: Position[] = await Promise.all(
+    state.positions.map(async (pos) => {
+      try {
+        const raw = await client.get(ohlcKey(pos.mbCode, "1Y"));
+        if (!raw) return pos;
+        const data: OHLC[] = JSON.parse(raw);
+        if (!Array.isArray(data) || data.length === 0) return pos;
+        const currentPrice = data[data.length - 1].close;
+        const pnl = (currentPrice - pos.avgPrice) * pos.quantity;
+        const pnlPct = (currentPrice - pos.avgPrice) / pos.avgPrice;
+        return { ...pos, currentPrice, pnl, pnlPct };
+      } catch {
+        return pos;
+      }
+    })
+  );
+
+  const nav =
+    state.cash +
+    enrichedPositions.reduce((s, p) => s + p.quantity * p.currentPrice, 0);
+
+  return { ...state, positions: enrichedPositions, nav };
+}
 
 function fmtINR(val: number, decimals = 0) {
   return `₹${val.toLocaleString("en-IN", { maximumFractionDigits: decimals })}`;
@@ -25,14 +57,26 @@ export default async function PortfolioPage({
   const client = await getRedisClient();
   let state: ModelState | null = null;
   let config: RunConfig | null = null;
+  let analytics: PortfolioAnalytics | null = null;
 
   try {
-    const [stateRaw, cfgRaw] = await Promise.all([
+    const [stateRaw, cfgRaw, tradesRaw] = await Promise.all([
       client.get(modelStateKey(ACTIVE_RUN_ID, modelId)),
       client.get(runConfigKey(ACTIVE_RUN_ID)),
+      client.get(modelTradesKey(ACTIVE_RUN_ID, modelId)),
     ]);
     if (stateRaw) state = JSON.parse(stateRaw);
     if (cfgRaw) config = JSON.parse(cfgRaw);
+
+    if (state) {
+      // Enrich positions with latest OHLC close prices (same source as the ticker bar)
+      state = await enrichWithCurrentPrices(client, state);
+      const trades: Trade[] = tradesRaw ? JSON.parse(tradesRaw) : [];
+      analytics = computePortfolioAnalytics(ACTIVE_RUN_ID, state, trades);
+      // Persist analytics so the LLM agent can use them as context on each tick
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await savePortfolioAnalytics(client as any, analytics);
+    }
   } finally {
     await client.disconnect();
   }
@@ -57,8 +101,8 @@ export default async function PortfolioPage({
           gap: "0.75rem",
         }}
       >
-        <Link href="/leaderboard" style={{ color: "#666", textDecoration: "none", fontSize: "0.8rem" }}>
-          ← LEADERBOARD
+        <Link href={`/models/${modelId}`} style={{ color: "#666", textDecoration: "none", fontSize: "0.8rem" }}>
+          ← MODEL
         </Link>
         <span style={{ color: "#999" }}>|</span>
         <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
@@ -211,6 +255,42 @@ export default async function PortfolioPage({
                 ))}
               </div>
             </div>
+
+            {/* Portfolio analytics */}
+            {analytics && (
+              <div style={{ borderTop: "2px solid #000", paddingTop: "1rem", marginTop: "1rem" }}>
+                <p
+                  style={{
+                    fontSize: "0.7rem",
+                    fontWeight: "bold",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    marginBottom: "0.75rem",
+                  }}
+                >
+                  Portfolio Analytics
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                  {[
+                    { label: "Exposure",         value: fmtPct(analytics.exposurePct, false), color: "#000", bold: false },
+                    { label: "Unrealized P&L",   value: fmtINR(analytics.unrealizedPnL), color: analytics.unrealizedPnL >= 0 ? "var(--accent-green)" : "var(--accent-red)", bold: false },
+                    { label: "Realized P&L",     value: fmtINR(analytics.realizedPnL), color: analytics.realizedPnL >= 0 ? "var(--accent-green)" : "var(--accent-red)", bold: false },
+                    { label: "Win Rate",         value: fmtPct(analytics.winRate, false), color: "#000", bold: false },
+                    { label: "Profit Factor",    value: isFinite(analytics.profitFactor) ? analytics.profitFactor.toFixed(2) : "∞", color: analytics.profitFactor >= 1 ? "var(--accent-green)" : "var(--accent-red)", bold: true },
+                    { label: "Avg Win",          value: fmtINR(analytics.avgWin), color: "var(--accent-green)", bold: false },
+                    { label: "Avg Loss",         value: fmtINR(analytics.avgLoss), color: "var(--accent-red)", bold: false },
+                    { label: "Avg MAE",          value: fmtPct(analytics.avgMAE), color: "var(--accent-red)", bold: false },
+                    { label: "Avg MFE",          value: fmtPct(analytics.avgMFE), color: "var(--accent-green)", bold: false },
+                    { label: "Vol. Proxy",       value: fmtPct(analytics.portfolioVolatilityProxy, false), color: "#666", bold: false },
+                  ].map(({ label, value, color, bold }) => (
+                    <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem" }}>
+                      <span style={{ color: "#666" }}>{label}</span>
+                      <span style={{ color, fontWeight: bold ? "bold" : "normal" }}>{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {state.lastUpdated && (
               <p style={{ fontSize: "0.7rem", color: "#999", marginTop: "1.5rem" }}>
