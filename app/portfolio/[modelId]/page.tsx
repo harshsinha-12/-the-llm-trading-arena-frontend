@@ -168,11 +168,11 @@ export default async function PortfolioPage({
                 style={{
                   fontSize: "0.75rem",
                   marginTop: "0.3rem",
-                  color: state.metrics.totalReturn >= 0 ? "var(--accent-green)" : "var(--accent-red)",
+                  color: state.nav >= 1_000_000 ? "var(--accent-green)" : "var(--accent-red)",
                 }}
               >
-                {state.metrics.totalReturn >= 0 ? "▲" : "▼"}{" "}
-                {Math.abs(state.metrics.totalReturn * 100).toFixed(2)}% from start
+                {state.nav >= 1_000_000 ? "▲" : "▼"}{" "}
+                {Math.abs(((state.nav - 1_000_000) / 1_000_000) * 100).toFixed(2)}% from start
               </div>
             </div>
 
@@ -212,8 +212,8 @@ export default async function PortfolioPage({
                 {[
                   {
                     label: "Total Return",
-                    value: fmtPct(state.metrics.totalReturn),
-                    color: state.metrics.totalReturn >= 0 ? "var(--accent-green)" : "var(--accent-red)",
+                    value: fmtPct((state.nav - 1_000_000) / 1_000_000),
+                    color: state.nav >= 1_000_000 ? "var(--accent-green)" : "var(--accent-red)",
                     bold: true,
                   },
                   {

@@ -56,8 +56,6 @@ export interface OHLCDataPoint {
     volume: number
 }
 
-// --- Run / Model types ---
-
 export type ModelConfig = {
     modelId: string
     name: string
@@ -76,9 +74,9 @@ export type RunConfig = {
     rules: {
         startingCapital: number
         maxPositions: number
-        maxPositionSizePct: number   // e.g., 0.2 for 20%
-        brokerageBps: number         // e.g., 10
-        slippageBps: number          // e.g., 5
+        maxPositionSizePct: number   
+        brokerageBps: number         
+        slippageBps: number
     }
 }
 
@@ -95,8 +93,8 @@ export type Position = {
 }
 
 export type ModelMetrics = {
-    totalReturn: number     // decimal e.g. 0.062 = 6.2%
-    maxDrawdown: number     // negative decimal e.g. -0.021
+    totalReturn: number     
+    maxDrawdown: number 
     turnoverCost: number
     score: number
     hhi?: number
@@ -138,8 +136,6 @@ export type LeaderboardEntry = {
     numTrades?: number
 }
 
-// ─── LLM trade decision types ─────────────────────────────────────────────────
-
 export type Order = {
     symbol: string;
     action: "BUY" | "SELL" | "HOLD";
@@ -157,39 +153,27 @@ export type TradeDecision = {
     orders: Order[];
     risk_controls: RiskControls;
     rationale: string;
-    confidence: number; // 0.0 – 1.0
+    confidence: number;
 };
 
-// Rich portfolio analytics — computed from ModelState + Trade history, saved to Redis
-// for use as LLM context on each tick.
 export type PortfolioAnalytics = {
     modelId: string
     runId: string
     computedAt: string
-
-    // Allocation
-    cashPct: number           // cash / nav
-    exposurePct: number       // invested / nav
+    cashPct: number           
+    exposurePct: number       
     numOpenPositions: number
-
-    // Concentration
-    hhi: number               // Herfindahl-Hirschman Index (0=diversified, 1=concentrated)
-
-    // Unrealized (live positions)
+    hhi: number               
     unrealizedPnL: number
     unrealizedPnLPct: number
-    avgMAE: number            // avg max adverse excursion across positions (negative %)
-    avgMFE: number            // avg max favorable excursion across positions (positive %)
-    portfolioVolatilityProxy: number  // weighted avg |pnlPct| across positions
-
-    // Realized (closed trades)
+    avgMAE: number            
+    avgMFE: number            
+    portfolioVolatilityProxy: number  
     realizedPnL: number
-    winRate: number           // % of closed trades with pnl > 0
-    avgWin: number            // mean pnl of winning trades
-    avgLoss: number           // mean pnl of losing trades (negative value)
-    profitFactor: number      // gross profit / abs(gross loss), Infinity if no losses
-
-    // Pass-through from ModelMetrics
+    winRate: number           
+    avgWin: number            
+    avgLoss: number           
+    profitFactor: number      
     totalReturn: number
     maxDrawdown: number
     drawdownDuration: number

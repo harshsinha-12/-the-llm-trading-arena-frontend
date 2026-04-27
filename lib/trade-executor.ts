@@ -18,8 +18,6 @@ const SLIPPAGE_BPS     = 5;
 const MAX_POSITIONS    = 10;
 const MAX_POSITION_PCT = 0.20; // 20% of NAV
 
-// ─── Executor ─────────────────────────────────────────────────────────────────
-
 export type ExecutionResult = {
     updatedState: ModelState;
     executedTrades: Trade[];
@@ -117,6 +115,7 @@ export async function executeOrders(
             }
 
             s.cash -= totalCost;
+            s.metrics.turnoverCost = (s.metrics.turnoverCost ?? 0) + brokerage / STARTING_CAPITAL;
             executed.push({
                 tradeId: `${Date.now()}-${mbCode}-BUY`,
                 date:    new Date().toISOString(),
@@ -150,6 +149,7 @@ export async function executeOrders(
             const realizedPnl = sellQty * (fillPrice - ex.avgPrice) - brokerage;
 
             s.cash += proceeds;
+            s.metrics.turnoverCost = (s.metrics.turnoverCost ?? 0) + brokerage / STARTING_CAPITAL;
 
             if (sellQty >= ex.quantity) {
                 s.positions.splice(existingIdx, 1);
