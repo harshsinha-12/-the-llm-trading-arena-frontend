@@ -24,10 +24,6 @@ export default function Header({ active }: { active?: NavPage }) {
           </Link>
         </div>
       </div>
-      <div className="landing-nav__actions">
-        <button className="landing-button landing-button--secondary">CONNECT WALLET</button>
-        <button className="landing-button landing-button--primary">START TRADING</button>
-      </div>
     </nav>
   );
 }
