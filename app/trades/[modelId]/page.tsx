@@ -5,7 +5,7 @@ import { modelTradesKey, runConfigKey } from "@/lib/run-redis-keys";
 import { Trade, RunConfig } from "@/types/global";
 import Link from "next/link";
 
-const MODEL_COLORS = ["#e6e6fa", "#e6f7ff", "#fff0f6", "#f6ffed"];
+const MODEL_COLORS = ["#d7d7fd", "#d7f5d0", "#ffebeb", "#f3f3f3"];
 
 function fmtINR(val: number, decimals = 0) {
   return `₹${val.toLocaleString("en-IN", { maximumFractionDigits: decimals })}`;
@@ -50,175 +50,105 @@ export default async function TradesPage({
   const winRate = closed.length > 0 ? ((winners / closed.length) * 100).toFixed(0) + "%" : "—";
 
   return (
-    <main style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <Header active="leaderboard" />
+    <main className="landing-page">
+      <Header active="trades" />
 
       {/* Sub-header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          borderBottom: "2px solid #000",
-          padding: "0.5rem 1rem",
-          fontSize: "0.85rem",
-          gap: "0.75rem",
-          flexWrap: "wrap",
-        }}
-      >
-        <Link href="/leaderboard" style={{ color: "#666", textDecoration: "none", fontSize: "0.8rem" }}>
-          ← LEADERBOARD
-        </Link>
-        <span style={{ color: "#999" }}>|</span>
-        <Link
-          href={`/portfolio/${modelId}`}
-          style={{ color: "#666", textDecoration: "none", fontSize: "0.8rem" }}
-        >
+      <div className="landing-terminal__header" style={{ justifyContent: "flex-start", gap: "16px", borderTop: "0", background: "var(--landing-surface)", color: "var(--landing-line)" }}>
+        <Link href={`/portfolio/${modelId}`} style={{ color: "var(--landing-muted)", textDecoration: "none" }}>
           ← PORTFOLIO
         </Link>
-        <span style={{ color: "#999" }}>|</span>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-          <span
-            style={{
-              width: "12px",
-              height: "12px",
-              backgroundColor: modelColor,
-              display: "inline-block",
-              border: "1.5px solid #000",
-            }}
-          />
+        <span style={{ color: "var(--landing-muted)" }}>|</span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+          <i style={{ width: "12px", height: "12px", background: modelColor, border: "1px solid var(--landing-line)", display: "inline-block" }} />
           <span style={{ fontWeight: 800 }}>{modelName.toUpperCase()}</span>
         </span>
-        <span style={{ color: "#999" }}>|</span>
-        <span style={{ color: "#666" }}>TRADE HISTORY</span>
+        <span style={{ color: "var(--landing-muted)" }}>|</span>
+        <span style={{ color: "var(--landing-muted)" }}>TRADE HISTORY</span>
       </div>
 
-      <div style={{ padding: "1.5rem 2rem" }}>
-        {/* Summary stats */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "0.75rem",
-            marginBottom: "1.5rem",
-          }}
-        >
-          {[
-            { label: "TOTAL TRADES", value: String(trades.length) },
-            { label: "BUY / SELL", value: `${buys} / ${sells}` },
-            {
-              label: "REALIZED P&L",
-              value: fmtINR(totalPnl),
-              color: totalPnl >= 0 ? "var(--accent-green)" : "var(--accent-red)",
-            },
-            { label: "WIN RATE", value: winRate },
-          ].map(({ label, value, color }) => (
-            <div className="stat-card" key={label}>
-              <div className="stat-value" style={{ color: color ?? "#000" }}>
-                {value}
+      <section className="landing-section">
+        <div className="landing-section__inner">
+          {/* Summary stats */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "32px" }}>
+            {[
+              { label: "TOTAL TRADES", value: String(trades.length) },
+              { label: "BUY / SELL", value: `${buys} / ${sells}` },
+              {
+                label: "REALIZED P&L",
+                value: fmtINR(totalPnl),
+                color: totalPnl >= 0 ? "var(--accent-green)" : "var(--accent-red)",
+              },
+              { label: "WIN RATE", value: winRate },
+            ].map(({ label, value, color }) => (
+              <div className="landing-mini-card" key={label} style={{ background: "var(--landing-surface)" }}>
+                <div style={{ fontSize: "24px", fontWeight: 800, color: color ?? "var(--landing-line)" }}>
+                  {value}
+                </div>
+                <div style={{ fontSize: "10px", color: "var(--landing-muted)", fontWeight: 700 }}>{label}</div>
               </div>
-              <div className="stat-label">{label}</div>
-            </div>
-          ))}
-        </div>
-
-        {sorted.length === 0 ? (
-          <div className="empty-state">
-            <p style={{ fontWeight: "bold", marginBottom: "0.5rem" }}>NO TRADES YET</p>
-            <p style={{ fontSize: "0.8rem", color: "#666" }}>
-              Run the trading engine to generate trades.
-            </p>
-            <p style={{ fontSize: "0.75rem", color: "#999", marginTop: "0.5rem" }}>
-              Redis key: <code>run:{ACTIVE_RUN_ID}:model:{modelId}:trades</code>
-            </p>
+            ))}
           </div>
-        ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table>
-              <thead>
-                <tr>
-                  <th>DATE</th>
-                  <th>SYMBOL</th>
-                  <th>SIDE</th>
-                  <th style={{ textAlign: "right" }}>QTY</th>
-                  <th style={{ textAlign: "right" }}>PRICE</th>
-                  <th style={{ textAlign: "right" }}>VALUE</th>
-                  <th style={{ textAlign: "right" }}>P&L</th>
-                  <th>REASON</th>
-                </tr>
-              </thead>
-              <tbody>
+
+          {sorted.length === 0 ? (
+            <div className="landing-coming-soon" style={{ margin: "0 auto" }}>
+              <strong>NO TRADES YET</strong>
+              <span>Run the trading engine to generate trades.</span>
+              <span style={{ marginTop: "16px" }}>Redis key: <code>run:{ACTIVE_RUN_ID}:model:{modelId}:trades</code></span>
+            </div>
+          ) : (
+            <div className="landing-dashboard" style={{ overflowX: "auto", padding: 0 }}>
+              <div className="landing-leaderboard__head" style={{ gridTemplateColumns: "1.5fr 1fr 1fr 1fr 1.5fr 1.5fr 1.5fr 3fr", padding: "0 16px" }}>
+                <span style={{ textAlign: "left" }}>DATE</span>
+                <span style={{ textAlign: "left" }}>SYMBOL</span>
+                <span style={{ textAlign: "left" }}>SIDE</span>
+                <span style={{ textAlign: "right" }}>QTY</span>
+                <span style={{ textAlign: "right" }}>PRICE</span>
+                <span style={{ textAlign: "right" }}>VALUE</span>
+                <span style={{ textAlign: "right" }}>P&L</span>
+                <span style={{ textAlign: "left", paddingLeft: "16px" }}>REASON</span>
+              </div>
+              
+              <div className="landing-leaderboard" style={{ minHeight: "auto", border: 0, borderTop: "1px solid var(--landing-line)" }}>
                 {sorted.map((trade) => (
-                  <tr key={trade.tradeId}>
-                    <td style={{ whiteSpace: "nowrap", color: "#666", fontSize: "0.8rem" }}>
+                  <div key={trade.tradeId} className="landing-leaderboard__row" style={{ gridTemplateColumns: "1.5fr 1fr 1fr 1fr 1.5fr 1.5fr 1.5fr 3fr", padding: "0 16px" }}>
+                    <span style={{ color: "var(--landing-muted)", fontSize: "12px", justifyContent: "flex-start" }}>
                       {new Date(trade.date).toLocaleDateString("en-IN", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                        timeZone: "Asia/Kolkata",
+                        day: "2-digit", month: "short", year: "numeric", timeZone: "Asia/Kolkata",
                       })}
-                    </td>
-                    <td style={{ fontWeight: "bold" }}>{trade.symbol}</td>
-                    <td>
-                      <span
-                        style={{
-                          display: "inline-block",
-                          padding: "0.1rem 0.45rem",
-                          fontSize: "0.7rem",
-                          fontWeight: "bold",
-                          border: "1.5px solid",
-                          color:
-                            trade.side === "BUY"
-                              ? "var(--accent-green)"
-                              : "var(--accent-red)",
-                          borderColor:
-                            trade.side === "BUY"
-                              ? "var(--accent-green)"
-                              : "var(--accent-red)",
-                        }}
-                      >
+                    </span>
+                    <strong style={{ justifyContent: "flex-start" }}>{trade.symbol}</strong>
+                    <span style={{ justifyContent: "flex-start" }}>
+                      <span style={{
+                        display: "inline-block", padding: "2px 6px", fontSize: "10px", fontWeight: 800,
+                        border: "1px solid", color: trade.side === "BUY" ? "var(--accent-green)" : "var(--accent-red)",
+                        borderColor: trade.side === "BUY" ? "var(--accent-green)" : "var(--accent-red)",
+                      }}>
                         {trade.side}
                       </span>
-                    </td>
-                    <td style={{ textAlign: "right" }}>{trade.quantity}</td>
-                    <td style={{ textAlign: "right" }}>
-                      {fmtINR(trade.price, 2)}
-                    </td>
-                    <td style={{ textAlign: "right" }}>{fmtINR(trade.value)}</td>
-                    <td style={{ textAlign: "right" }}>
+                    </span>
+                    <span style={{ textAlign: "right" }}>{trade.quantity}</span>
+                    <span style={{ textAlign: "right", fontWeight: 700 }}>{fmtINR(trade.price, 2)}</span>
+                    <span style={{ textAlign: "right", fontWeight: 700 }}>{fmtINR(trade.value)}</span>
+                    <span style={{ textAlign: "right" }}>
                       {trade.pnl !== undefined ? (
-                        <span
-                          style={{
-                            fontWeight: "bold",
-                            color:
-                              trade.pnl >= 0 ? "var(--accent-green)" : "var(--accent-red)",
-                          }}
-                        >
-                          {trade.pnl >= 0 ? "+" : ""}
-                          {fmtINR(trade.pnl)}
+                        <span style={{ fontWeight: 800, color: trade.pnl >= 0 ? "var(--accent-green)" : "var(--accent-red)" }}>
+                          {trade.pnl >= 0 ? "+" : ""}{fmtINR(trade.pnl)}
                         </span>
                       ) : (
-                        <span style={{ color: "#999" }}>—</span>
+                        <span style={{ color: "var(--landing-muted)" }}>—</span>
                       )}
-                    </td>
-                    <td
-                      style={{
-                        fontSize: "0.75rem",
-                        color: "#666",
-                        maxWidth: "200px",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
+                    </span>
+                    <span style={{ fontSize: "12px", color: "var(--landing-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", justifyContent: "flex-start", paddingLeft: "16px" }}>
                       {trade.reason ?? "—"}
-                    </td>
-                  </tr>
+                    </span>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
     </main>
   );
 }

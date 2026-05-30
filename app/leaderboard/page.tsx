@@ -5,11 +5,11 @@ import { runLeaderboardKey, runConfigKey } from "@/lib/run-redis-keys";
 import { LeaderboardEntry, RunConfig, ModelConfig } from "@/types/global";
 import Link from "next/link";
 
-const MODEL_COLORS = ["#e6e6fa", "#e6f7ff", "#fff0f6", "#f6ffed"];
+const MODEL_COLORS = ["#d7d7fd", "#d7f5d0", "#ffebeb", "#f3f3f3"];
 
 function getModelColor(modelId: string, models: ModelConfig[]): string {
   const idx = models.findIndex((m) => m.modelId === modelId);
-  return idx !== -1 ? MODEL_COLORS[idx % MODEL_COLORS.length] : "#f0f0f0";
+  return idx !== -1 ? MODEL_COLORS[idx % MODEL_COLORS.length] : "#e8e8e8";
 }
 
 function fmtPct(val: number) {
@@ -17,8 +17,10 @@ function fmtPct(val: number) {
   return `${sign}${(val * 100).toFixed(2)}%`;
 }
 
-function fmtINR(val: number) {
-  return `₹${(val / 100000).toFixed(2)}L`;
+function fmtCurrency(value: number) {
+  if (value >= 10000000) return `₹${(value / 10000000).toFixed(2)}Cr`;
+  if (value >= 100000) return `₹${(value / 100000).toFixed(2)}L`;
+  return `₹${value.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 }
 
 export default async function LeaderboardPage() {
@@ -40,204 +42,116 @@ export default async function LeaderboardPage() {
   const models = config?.models ?? [];
 
   return (
-    <main style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <Header active="leaderboard" />
+    <main className="landing-page">
+      <Header active="rankings" />
 
-      {/* Sub-header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          borderBottom: "2px solid #000",
-          padding: "0.5rem 1rem",
-          fontSize: "0.85rem",
-          gap: "0.75rem",
-        }}
-      >
-        <span style={{ fontWeight: 800 }}>LEADERBOARD</span>
-        <span style={{ color: "#999" }}>|</span>
-        <span style={{ color: "#666" }}>{config?.season ?? "Season 1"}</span>
-        <span style={{ color: "#999" }}>|</span>
-        <span style={{ color: "var(--accent-green)", fontWeight: "bold" }}>
-          {config?.status?.toUpperCase() ?? "ACTIVE"}
+      {/* Sub-header matching the new terminal design */}
+      <div className="landing-terminal__header" style={{ justifyContent: "flex-start", gap: "16px", borderTop: "0", background: "var(--landing-surface)", color: "var(--landing-line)" }}>
+        <span style={{ fontSize: "12px" }}>
+          LEADERBOARD
+        </span>
+        <span style={{ color: "var(--landing-muted)" }}>|</span>
+        <span style={{ color: "var(--landing-muted)" }}>{config?.season ?? "Season 1"}</span>
+        <span style={{ color: "var(--landing-muted)" }}>|</span>
+        <span style={{ color: "var(--accent-green)" }}>
+          <i style={{ background: "var(--accent-green)", display: "inline-block" }} /> {config?.status?.toUpperCase() ?? "ACTIVE"}
         </span>
         {config?.startDate && (
           <>
-            <span style={{ color: "#999" }}>|</span>
-            <span style={{ color: "#666", fontSize: "0.75rem" }}>
-              Started: {config.startDate}
-            </span>
+            <span style={{ color: "var(--landing-muted)" }}>|</span>
+            <span style={{ color: "var(--landing-muted)" }}>Started: {config.startDate}</span>
           </>
         )}
       </div>
 
-      <div style={{ padding: "2rem" }}>
-        {entries.length === 0 ? (
-          <div className="empty-state">
-            <p style={{ fontWeight: "bold", marginBottom: "0.5rem" }}>NO DATA YET</p>
-            <p style={{ fontSize: "0.8rem", color: "#666" }}>
-              Run the trading engine to populate the leaderboard.
-            </p>
-            <p style={{ fontSize: "0.75rem", color: "#999", marginTop: "0.5rem" }}>
-              Redis key:{" "}
-              <code>run:{ACTIVE_RUN_ID}:leaderboard:latest</code>
-            </p>
-          </div>
-        ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>MODEL</th>
-                  <th style={{ textAlign: "right" }}>SCORE</th>
-                  <th style={{ textAlign: "right" }}>TOTAL RETURN</th>
-                  <th style={{ textAlign: "right" }}>MAX DRAWDOWN</th>
-                  <th style={{ textAlign: "right" }}>TURNOVER COST</th>
-                  <th style={{ textAlign: "right" }}>NAV</th>
-                  <th style={{ textAlign: "right" }}>TRADES</th>
-                  <th>ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody>
+      <section className="landing-section">
+        <div className="landing-section__inner">
+          {entries.length === 0 ? (
+            <div className="landing-coming-soon" style={{ margin: "0 auto" }}>
+              <strong>NO DATA YET</strong>
+              <span>Run the trading engine to populate the leaderboard.</span>
+              <span style={{ marginTop: "16px" }}>Redis key: <code>run:{ACTIVE_RUN_ID}:leaderboard:latest</code></span>
+            </div>
+          ) : (
+            <div className="landing-dashboard" style={{ overflowX: "auto", padding: "0" }}>
+              <div className="landing-leaderboard__head" style={{ gridTemplateColumns: "40px 2fr 1fr 1fr 1fr 1fr 1fr 1fr 1.5fr", padding: "0 16px" }}>
+                <span>#</span>
+                <span style={{ textAlign: "left" }}>MODEL</span>
+                <span style={{ textAlign: "right" }}>SCORE</span>
+                <span style={{ textAlign: "right" }}>TOTAL RETURN</span>
+                <span style={{ textAlign: "right" }}>MAX DRAWDOWN</span>
+                <span style={{ textAlign: "right" }}>TURNOVER COST</span>
+                <span style={{ textAlign: "right" }}>NAV</span>
+                <span style={{ textAlign: "right" }}>TRADES</span>
+                <span style={{ textAlign: "right" }}>ACTIONS</span>
+              </div>
+              
+              <div className="landing-leaderboard" style={{ minHeight: "auto", border: "0", borderTop: "1px solid var(--landing-line)" }}>
                 {entries.map((entry) => {
                   const color = getModelColor(entry.modelId, models);
                   return (
-                    <tr key={entry.modelId}>
-                      <td style={{ fontWeight: "bold" }}>{entry.rank}</td>
-                      <td>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                          <span
-                            style={{
-                              width: "12px",
-                              height: "12px",
-                              backgroundColor: color,
-                              display: "inline-block",
-                              border: "1.5px solid #000",
-                              flexShrink: 0,
-                            }}
-                          />
-                          <span style={{ fontWeight: "bold" }}>{entry.name}</span>
-                        </div>
-                      </td>
-                      <td
-                        style={{
-                          textAlign: "right",
-                          fontWeight: "bold",
-                          color: entry.score >= 0 ? "var(--accent-green)" : "var(--accent-red)",
-                        }}
-                      >
-                        {entry.score >= 0 ? "+" : ""}
-                        {entry.score.toFixed(4)}
-                      </td>
-                      <td
-                        style={{
-                          textAlign: "right",
-                          color: entry.totalReturn >= 0 ? "var(--accent-green)" : "var(--accent-red)",
-                        }}
-                      >
+                    <div key={entry.modelId} className="landing-leaderboard__row" style={{ gridTemplateColumns: "40px 2fr 1fr 1fr 1fr 1fr 1fr 1fr 1.5fr", padding: "0 16px" }}>
+                      <span style={{ fontWeight: 800 }}>{entry.rank}</span>
+                      <strong style={{ justifyContent: "flex-start" }}>
+                        <i style={{ background: color, border: "1px solid var(--landing-line)" }} /> {entry.name}
+                      </strong>
+                      <span style={{ textAlign: "right", fontWeight: 700, color: entry.score >= 0 ? "var(--accent-green)" : "var(--accent-red)" }}>
+                        {entry.score >= 0 ? "+" : ""}{entry.score.toFixed(4)}
+                      </span>
+                      <span style={{ textAlign: "right", fontWeight: 700, color: entry.totalReturn >= 0 ? "var(--accent-green)" : "var(--accent-red)" }}>
                         {fmtPct(entry.totalReturn)}
-                      </td>
-                      <td style={{ textAlign: "right", color: "var(--accent-red)" }}>
+                      </span>
+                      <span style={{ textAlign: "right", fontWeight: 700, color: "var(--accent-red)" }}>
                         {fmtPct(entry.maxDrawdown)}
-                      </td>
-                      <td style={{ textAlign: "right", color: "#666" }}>
+                      </span>
+                      <span style={{ textAlign: "right", color: "var(--landing-muted)" }}>
                         {fmtPct(entry.turnoverCost)}
-                      </td>
-                      <td style={{ textAlign: "right" }}>{fmtINR(entry.nav)}</td>
-                      <td style={{ textAlign: "right", color: "#666" }}>
+                      </span>
+                      <span style={{ textAlign: "right", fontWeight: 700 }}>
+                        {fmtCurrency(entry.nav)}
+                      </span>
+                      <span style={{ textAlign: "right", color: "var(--landing-muted)" }}>
                         {entry.numTrades ?? "—"}
-                      </td>
-                      <td>
-                        <div style={{ display: "flex", gap: "0.4rem" }}>
-                          <Link
-                            href={`/portfolio/${entry.modelId}`}
-                            style={{
-                              fontSize: "0.75rem",
-                              border: "1.5px solid #000",
-                              padding: "0.2rem 0.5rem",
-                              color: "#000",
-                              textDecoration: "none",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            Portfolio
-                          </Link>
-                          <Link
-                            href={`/trades/${entry.modelId}`}
-                            style={{
-                              fontSize: "0.75rem",
-                              border: "1.5px solid #000",
-                              padding: "0.2rem 0.5rem",
-                              color: "#000",
-                              textDecoration: "none",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            Trades
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
+                      </span>
+                      <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                        <Link href={`/portfolio/${entry.modelId}`} className="landing-button" style={{ minHeight: "24px", height: "24px", padding: "0 8px" }}>
+                          PORTFOLIO
+                        </Link>
+                        <Link href={`/trades/${entry.modelId}`} className="landing-button" style={{ minHeight: "24px", height: "24px", padding: "0 8px" }}>
+                          TRADES
+                        </Link>
+                      </div>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
-          </div>
-        )}
+              </div>
+            </div>
+          )}
 
-        {/* Scoring formula */}
-        <div
-          style={{
-            border: "2px solid #000",
-            padding: "1rem",
-            marginTop: "2rem",
-            backgroundColor: "#fafafa",
-            fontSize: "0.8rem",
-          }}
-        >
-          <p style={{ fontWeight: "bold", marginBottom: "0.4rem", fontSize: "0.75rem", letterSpacing: "0.05em" }}>
-            SCORING FORMULA
-          </p>
-          <code style={{ fontSize: "0.85rem" }}>
-            score = totalReturn − 0.5 × maxDrawdown − 0.1 × turnoverCost
-          </code>
+          {/* Scoring formula */}
+          <div className="landing-mini-card" style={{ marginTop: "32px", padding: "24px", background: "var(--landing-surface-low)" }}>
+            <h3 style={{ fontSize: "12px", color: "var(--landing-muted)", marginBottom: "8px" }}>SCORING FORMULA</h3>
+            <code style={{ fontSize: "14px", fontWeight: 700 }}>score = totalReturn − 0.5 × maxDrawdown − 0.1 × turnoverCost</code>
+          </div>
+
+          {/* Link to all models */}
+          {models.length > 0 && (
+            <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginTop: "32px" }}>
+              {models.map((m, idx) => (
+                <Link
+                  key={m.modelId}
+                  href={`/portfolio/${m.modelId}`}
+                  className="landing-button"
+                  style={{ background: MODEL_COLORS[idx % MODEL_COLORS.length] }}
+                >
+                  <i style={{ background: "var(--landing-surface)", width: "8px", height: "8px", border: "1px solid var(--landing-line)", marginRight: "8px" }} />
+                  {m.name}
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
-
-        {/* Link to all models */}
-        {models.length > 0 && (
-          <div style={{ marginTop: "1.5rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-            {models.map((m, idx) => (
-              <Link
-                key={m.modelId}
-                href={`/portfolio/${m.modelId}`}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.4rem",
-                  border: "2px solid #000",
-                  padding: "0.4rem 0.75rem",
-                  fontSize: "0.75rem",
-                  color: "#000",
-                  textDecoration: "none",
-                  backgroundColor: MODEL_COLORS[idx % MODEL_COLORS.length],
-                }}
-              >
-                <span
-                  style={{
-                    width: "10px",
-                    height: "10px",
-                    border: "1px solid #000",
-                    backgroundColor: MODEL_COLORS[idx % MODEL_COLORS.length],
-                    display: "inline-block",
-                  }}
-                />
-                {m.name}
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
+      </section>
     </main>
   );
 }

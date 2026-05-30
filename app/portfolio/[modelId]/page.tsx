@@ -7,9 +7,7 @@ import { ModelState, RunConfig, Trade, PortfolioAnalytics, OHLC, Position } from
 import { computePortfolioAnalytics, savePortfolioAnalytics } from "@/lib/portfolio-analytics";
 import Link from "next/link";
 
-const MODEL_COLORS = ["#e6e6fa", "#e6f7ff", "#fff0f6", "#f6ffed"];
-
-// ─── helpers ────────────────────────────────────────────────────────────────
+const MODEL_COLORS = ["#d7d7fd", "#d7f5d0", "#ffebeb", "#f3f3f3"];
 
 async function enrichWithCurrentPrices(
   client: Awaited<ReturnType<typeof getRedisClient>>,
@@ -69,11 +67,9 @@ export default async function PortfolioPage({
     if (cfgRaw) config = JSON.parse(cfgRaw);
 
     if (state) {
-      // Enrich positions with latest OHLC close prices (same source as the ticker bar)
       state = await enrichWithCurrentPrices(client, state);
       const trades: Trade[] = tradesRaw ? JSON.parse(tradesRaw) : [];
       analytics = computePortfolioAnalytics(ACTIVE_RUN_ID, state, trades);
-      // Persist analytics so the LLM agent can use them as context on each tick
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await savePortfolioAnalytics(client as any, analytics);
     }
@@ -87,342 +83,187 @@ export default async function PortfolioPage({
   const modelColor = MODEL_COLORS[modelIdx >= 0 ? modelIdx % MODEL_COLORS.length : 0];
 
   return (
-    <main style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <Header active="leaderboard" />
+    <main className="landing-page">
+      <Header active="portfolio" />
 
       {/* Sub-header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          borderBottom: "2px solid #000",
-          padding: "0.5rem 1rem",
-          fontSize: "0.85rem",
-          gap: "0.75rem",
-        }}
-      >
-        <Link href={`/models/${modelId}`} style={{ color: "#666", textDecoration: "none", fontSize: "0.8rem" }}>
-          ← MODEL
+      <div className="landing-terminal__header" style={{ justifyContent: "flex-start", gap: "16px", borderTop: "0", background: "var(--landing-surface)", color: "var(--landing-line)" }}>
+        <Link href={`/runs`} style={{ color: "var(--landing-muted)", textDecoration: "none" }}>
+          ← BACK
         </Link>
-        <span style={{ color: "#999" }}>|</span>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-          <span
-            style={{
-              width: "12px",
-              height: "12px",
-              backgroundColor: modelColor,
-              display: "inline-block",
-              border: "1.5px solid #000",
-            }}
-          />
+        <span style={{ color: "var(--landing-muted)" }}>|</span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+          <i style={{ width: "12px", height: "12px", background: modelColor, border: "1px solid var(--landing-line)", display: "inline-block" }} />
           <span style={{ fontWeight: 800 }}>{modelName.toUpperCase()}</span>
         </span>
-        <span style={{ color: "#999" }}>|</span>
-        <span style={{ color: "#666" }}>PORTFOLIO</span>
+        <span style={{ color: "var(--landing-muted)" }}>|</span>
+        <span style={{ color: "var(--landing-muted)" }}>PORTFOLIO</span>
         {state && (
           <>
-            <span style={{ color: "#999" }}>|</span>
-            <span style={{ fontWeight: "bold" }}>NAV: {fmtINR(state.nav)}</span>
+            <span style={{ color: "var(--landing-muted)" }}>|</span>
+            <span style={{ fontWeight: 800 }}>NAV: {fmtINR(state.nav)}</span>
           </>
         )}
       </div>
 
       {!state ? (
-        <div style={{ padding: "2rem" }}>
-          <div className="empty-state">
-            <p style={{ fontWeight: "bold", marginBottom: "0.5rem" }}>NO DATA YET</p>
-            <p style={{ fontSize: "0.8rem", color: "#666" }}>
-              The engine has not written state for this model yet.
-            </p>
-            <p style={{ fontSize: "0.75rem", color: "#999", marginTop: "0.5rem" }}>
-              Redis key: <code>run:{ACTIVE_RUN_ID}:model:{modelId}:state</code>
-            </p>
+        <section className="landing-section">
+          <div className="landing-coming-soon" style={{ margin: "0 auto" }}>
+            <strong>NO DATA YET</strong>
+            <span>The engine has not written state for this model yet.</span>
+            <span style={{ marginTop: "16px" }}>Redis key: <code>run:{ACTIVE_RUN_ID}:model:{modelId}:state</code></span>
           </div>
-        </div>
+        </section>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "280px 1fr",
-            minHeight: "calc(100vh - 90px)",
-          }}
-        >
-          {/* Left sidebar */}
-          <div style={{ padding: "1.25rem", borderRight: "2px solid #000" }}>
-            {/* NAV card */}
-            <div
-              style={{
-                border: "2px solid #000",
-                padding: "1rem",
-                marginBottom: "1rem",
-                backgroundColor: modelColor,
-              }}
-            >
-              <div style={{ fontSize: "0.65rem", color: "#555", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.2rem" }}>
-                Net Asset Value
-              </div>
-              <div style={{ fontSize: "1.5rem", fontWeight: 800, lineHeight: 1.1 }}>
-                {fmtINR(state.nav)}
-              </div>
-              <div
-                style={{
-                  fontSize: "0.75rem",
-                  marginTop: "0.3rem",
-                  color: state.nav >= 1_000_000 ? "var(--accent-green)" : "var(--accent-red)",
-                }}
-              >
-                {state.nav >= 1_000_000 ? "▲" : "▼"}{" "}
-                {Math.abs(((state.nav - 1_000_000) / 1_000_000) * 100).toFixed(2)}% from start
-              </div>
-            </div>
-
-            {/* Quick stats */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "0.5rem",
-                marginBottom: "1rem",
-              }}
-            >
-              <div className="stat-card">
-                <div className="stat-value">{((state.cash / state.nav) * 100).toFixed(0)}%</div>
-                <div className="stat-label">CASH FREE</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-value">{state.positions.length}</div>
-                <div className="stat-label">POSITIONS</div>
-              </div>
-            </div>
-
-            {/* Detailed metrics */}
-            <div style={{ borderTop: "2px solid #000", paddingTop: "1rem" }}>
-              <p
-                style={{
-                  fontSize: "0.7rem",
-                  fontWeight: "bold",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                  marginBottom: "0.75rem",
-                }}
-              >
-                Performance
-              </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                {[
-                  {
-                    label: "Total Return",
-                    value: fmtPct((state.nav - 1_000_000) / 1_000_000),
-                    color: state.nav >= 1_000_000 ? "var(--accent-green)" : "var(--accent-red)",
-                    bold: true,
-                  },
-                  {
-                    label: "Max Drawdown",
-                    value: fmtPct(state.metrics.maxDrawdown),
-                    color: "var(--accent-red)",
-                    bold: false,
-                  },
-                  {
-                    label: "Score",
-                    value: state.metrics.score.toFixed(4),
-                    color: "#000",
-                    bold: true,
-                  },
-                  ...(state.metrics.hhi !== undefined
-                    ? [{ label: "HHI (Conc.)", value: state.metrics.hhi.toFixed(3), color: "#000", bold: false }]
-                    : []),
-                  {
-                    label: "Turnover Cost",
-                    value: fmtPct(state.metrics.turnoverCost),
-                    color: "#666",
-                    bold: false,
-                  },
-                  ...(state.metrics.numTrades !== undefined
-                    ? [{ label: "Trades", value: String(state.metrics.numTrades), color: "#000", bold: false }]
-                    : []),
-                ].map(({ label, value, color, bold }) => (
-                  <div
-                    key={label}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "0.8rem",
-                    }}
-                  >
-                    <span style={{ color: "#666" }}>{label}</span>
-                    <span style={{ color, fontWeight: bold ? "bold" : "normal" }}>{value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Portfolio analytics */}
-            {analytics && (
-              <div style={{ borderTop: "2px solid #000", paddingTop: "1rem", marginTop: "1rem" }}>
-                <p
-                  style={{
-                    fontSize: "0.7rem",
-                    fontWeight: "bold",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                    marginBottom: "0.75rem",
-                  }}
-                >
-                  Portfolio Analytics
+        <section className="landing-section" style={{ padding: 0 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "320px 1fr", minHeight: "calc(100vh - 105px)" }}>
+            
+            {/* Left sidebar */}
+            <div style={{ padding: "32px", borderRight: "1px solid var(--landing-line)", background: "var(--landing-surface-low)" }}>
+              {/* NAV card */}
+              <div className="landing-mini-card" style={{ background: modelColor, border: "1px solid var(--landing-line)", marginBottom: "24px" }}>
+                <p style={{ fontSize: "10px", color: "var(--landing-muted)", textTransform: "uppercase", fontWeight: 700 }}>
+                  Net Asset Value
                 </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                <div style={{ fontSize: "28px", fontWeight: 800, marginTop: "8px" }}>
+                  {fmtINR(state.nav)}
+                </div>
+                <div style={{ fontSize: "12px", marginTop: "8px", fontWeight: 700, color: state.nav >= 1_000_000 ? "var(--accent-green)" : "var(--accent-red)" }}>
+                  {state.nav >= 1_000_000 ? "▲" : "▼"} {Math.abs(((state.nav - 1_000_000) / 1_000_000) * 100).toFixed(2)}% from start
+                </div>
+              </div>
+
+              {/* Quick stats */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "32px" }}>
+                <div className="landing-mini-card" style={{ background: "var(--landing-surface)", padding: "16px" }}>
+                  <div style={{ fontSize: "24px", fontWeight: 800 }}>{((state.cash / state.nav) * 100).toFixed(0)}%</div>
+                  <div style={{ fontSize: "10px", color: "var(--landing-muted)", fontWeight: 700 }}>CASH FREE</div>
+                </div>
+                <div className="landing-mini-card" style={{ background: "var(--landing-surface)", padding: "16px" }}>
+                  <div style={{ fontSize: "24px", fontWeight: 800 }}>{state.positions.length}</div>
+                  <div style={{ fontSize: "10px", color: "var(--landing-muted)", fontWeight: 700 }}>POSITIONS</div>
+                </div>
+              </div>
+
+              {/* Detailed metrics */}
+              <div style={{ borderTop: "1px solid var(--landing-line)", paddingTop: "24px" }}>
+                <h3 style={{ fontSize: "12px", color: "var(--landing-muted)", marginBottom: "16px", textTransform: "uppercase", fontWeight: 700 }}>
+                  Performance
+                </h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   {[
-                    { label: "Exposure",         value: fmtPct(analytics.exposurePct, false), color: "#000", bold: false },
-                    { label: "Unrealized P&L",   value: fmtINR(analytics.unrealizedPnL), color: analytics.unrealizedPnL >= 0 ? "var(--accent-green)" : "var(--accent-red)", bold: false },
-                    { label: "Realized P&L",     value: fmtINR(analytics.realizedPnL), color: analytics.realizedPnL >= 0 ? "var(--accent-green)" : "var(--accent-red)", bold: false },
-                    { label: "Win Rate",         value: fmtPct(analytics.winRate, false), color: "#000", bold: false },
-                    { label: "Profit Factor",    value: isFinite(analytics.profitFactor) ? analytics.profitFactor.toFixed(2) : "∞", color: analytics.profitFactor >= 1 ? "var(--accent-green)" : "var(--accent-red)", bold: true },
-                    { label: "Avg Win",          value: fmtINR(analytics.avgWin), color: "var(--accent-green)", bold: false },
-                    { label: "Avg Loss",         value: fmtINR(analytics.avgLoss), color: "var(--accent-red)", bold: false },
-                    { label: "Avg MAE",          value: fmtPct(analytics.avgMAE), color: "var(--accent-red)", bold: false },
-                    { label: "Avg MFE",          value: fmtPct(analytics.avgMFE), color: "var(--accent-green)", bold: false },
-                    { label: "Vol. Proxy",       value: fmtPct(analytics.portfolioVolatilityProxy, false), color: "#666", bold: false },
+                    { label: "Total Return", value: fmtPct((state.nav - 1_000_000) / 1_000_000), color: state.nav >= 1_000_000 ? "var(--accent-green)" : "var(--accent-red)", bold: true },
+                    { label: "Max Drawdown", value: fmtPct(state.metrics.maxDrawdown), color: "var(--accent-red)", bold: false },
+                    { label: "Score", value: state.metrics.score.toFixed(4), color: "var(--landing-line)", bold: true },
+                    ...(state.metrics.hhi !== undefined ? [{ label: "HHI (Conc.)", value: state.metrics.hhi.toFixed(3), color: "var(--landing-line)", bold: false }] : []),
+                    { label: "Turnover Cost", value: fmtPct(state.metrics.turnoverCost), color: "var(--landing-muted)", bold: false },
+                    ...(state.metrics.numTrades !== undefined ? [{ label: "Trades", value: String(state.metrics.numTrades), color: "var(--landing-line)", bold: false }] : []),
                   ].map(({ label, value, color, bold }) => (
-                    <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem" }}>
-                      <span style={{ color: "#666" }}>{label}</span>
-                      <span style={{ color, fontWeight: bold ? "bold" : "normal" }}>{value}</span>
+                    <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
+                      <span style={{ color: "var(--landing-muted)" }}>{label}</span>
+                      <span style={{ color, fontWeight: bold ? 800 : 500 }}>{value}</span>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
 
-            {state.lastUpdated && (
-              <p style={{ fontSize: "0.7rem", color: "#999", marginTop: "1.5rem" }}>
-                Updated:{" "}
-                {new Date(state.lastUpdated).toLocaleString("en-IN", {
-                  timeZone: "Asia/Kolkata",
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                })}
-              </p>
-            )}
+              {/* Portfolio analytics */}
+              {analytics && (
+                <div style={{ borderTop: "1px solid var(--landing-line)", paddingTop: "24px", marginTop: "24px" }}>
+                  <h3 style={{ fontSize: "12px", color: "var(--landing-muted)", marginBottom: "16px", textTransform: "uppercase", fontWeight: 700 }}>
+                    Portfolio Analytics
+                  </h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    {[
+                      { label: "Exposure", value: fmtPct(analytics.exposurePct, false), color: "var(--landing-line)", bold: false },
+                      { label: "Unrealized P&L", value: fmtINR(analytics.unrealizedPnL), color: analytics.unrealizedPnL >= 0 ? "var(--accent-green)" : "var(--accent-red)", bold: false },
+                      { label: "Realized P&L", value: fmtINR(analytics.realizedPnL), color: analytics.realizedPnL >= 0 ? "var(--accent-green)" : "var(--accent-red)", bold: false },
+                      { label: "Win Rate", value: fmtPct(analytics.winRate, false), color: "var(--landing-line)", bold: false },
+                      { label: "Profit Factor", value: isFinite(analytics.profitFactor) ? analytics.profitFactor.toFixed(2) : "∞", color: analytics.profitFactor >= 1 ? "var(--accent-green)" : "var(--accent-red)", bold: true },
+                      { label: "Avg Win", value: fmtINR(analytics.avgWin), color: "var(--accent-green)", bold: false },
+                      { label: "Avg Loss", value: fmtINR(analytics.avgLoss), color: "var(--accent-red)", bold: false },
+                      { label: "Avg MAE", value: fmtPct(analytics.avgMAE), color: "var(--accent-red)", bold: false },
+                      { label: "Avg MFE", value: fmtPct(analytics.avgMFE), color: "var(--accent-green)", bold: false },
+                      { label: "Vol. Proxy", value: fmtPct(analytics.portfolioVolatilityProxy, false), color: "var(--landing-muted)", bold: false },
+                    ].map(({ label, value, color, bold }) => (
+                      <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
+                        <span style={{ color: "var(--landing-muted)" }}>{label}</span>
+                        <span style={{ color, fontWeight: bold ? 800 : 500 }}>{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-            <Link
-              href={`/trades/${modelId}`}
-              style={{
-                display: "block",
-                marginTop: "1rem",
-                border: "2px solid #000",
-                padding: "0.5rem",
-                textAlign: "center",
-                color: "#000",
-                textDecoration: "none",
-                fontSize: "0.8rem",
-                fontWeight: "bold",
-              }}
-            >
-              VIEW TRADE HISTORY →
-            </Link>
-          </div>
+              {state.lastUpdated && (
+                <p style={{ fontSize: "10px", color: "var(--landing-muted)", marginTop: "32px" }}>
+                  Updated: {new Date(state.lastUpdated).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" })}
+                </p>
+              )}
 
-          {/* Right — positions */}
-          <div style={{ padding: "1.5rem 2rem" }}>
-            <h2
-              style={{
-                fontWeight: 800,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                marginBottom: "1.25rem",
-              }}
-            >
-              Open Positions
-            </h2>
+              <Link href={`/trades/${modelId}`} className="landing-button" style={{ display: "block", textAlign: "center", marginTop: "24px" }}>
+                VIEW TRADE HISTORY →
+              </Link>
+            </div>
 
-            {state.positions.length === 0 ? (
-              <div className="empty-state" style={{ padding: "2rem" }}>
-                <p style={{ fontSize: "0.85rem", color: "#666" }}>No open positions</p>
-              </div>
-            ) : (
-              <div style={{ overflowX: "auto" }}>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>SYMBOL</th>
-                      <th style={{ textAlign: "right" }}>QTY</th>
-                      <th style={{ textAlign: "right" }}>AVG PRICE</th>
-                      <th style={{ textAlign: "right" }}>CUR PRICE</th>
-                      <th style={{ textAlign: "right" }}>VALUE</th>
-                      <th style={{ textAlign: "right" }}>P&L</th>
-                      <th style={{ textAlign: "right" }}>P&L %</th>
-                      {state.positions.some((p) => p.mae !== undefined) && (
-                        <th style={{ textAlign: "right" }}>MAE</th>
-                      )}
-                      {state.positions.some((p) => p.mfe !== undefined) && (
-                        <th style={{ textAlign: "right" }}>MFE</th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
+            {/* Right — positions */}
+            <div style={{ padding: "48px" }}>
+              <h2 style={{ fontFamily: "IBM Plex Sans", fontSize: "20px", fontWeight: 800, textTransform: "uppercase", marginBottom: "32px" }}>
+                Open Positions
+              </h2>
+
+              {state.positions.length === 0 ? (
+                <div className="landing-coming-soon" style={{ margin: "0", minHeight: "200px" }}>
+                  <span style={{ color: "var(--landing-muted)" }}>No open positions</span>
+                </div>
+              ) : (
+                <div className="landing-dashboard" style={{ overflowX: "auto", padding: 0 }}>
+                  <div className="landing-leaderboard__head" style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr 1.5fr 1fr 1fr" + (state.positions.some(p => p.mae !== undefined) ? " 1fr" : "") + (state.positions.some(p => p.mfe !== undefined) ? " 1fr" : ""), padding: "0 16px" }}>
+                    <span style={{ textAlign: "left" }}>SYMBOL</span>
+                    <span style={{ textAlign: "right" }}>QTY</span>
+                    <span style={{ textAlign: "right" }}>AVG PRICE</span>
+                    <span style={{ textAlign: "right" }}>CUR PRICE</span>
+                    <span style={{ textAlign: "right" }}>VALUE</span>
+                    <span style={{ textAlign: "right" }}>P&L</span>
+                    <span style={{ textAlign: "right" }}>P&L %</span>
+                    {state.positions.some((p) => p.mae !== undefined) && <span style={{ textAlign: "right" }}>MAE</span>}
+                    {state.positions.some((p) => p.mfe !== undefined) && <span style={{ textAlign: "right" }}>MFE</span>}
+                  </div>
+                  <div className="landing-leaderboard" style={{ minHeight: "auto", border: 0, borderTop: "1px solid var(--landing-line)" }}>
                     {state.positions.map((pos) => (
-                      <tr key={pos.symbol}>
-                        <td style={{ fontWeight: "bold" }}>{pos.symbol}</td>
-                        <td style={{ textAlign: "right" }}>{pos.quantity}</td>
-                        <td style={{ textAlign: "right" }}>
-                          {fmtINR(pos.avgPrice, 2)}
-                        </td>
-                        <td style={{ textAlign: "right" }}>
-                          {fmtINR(pos.currentPrice, 2)}
-                        </td>
-                        <td style={{ textAlign: "right" }}>
-                          {fmtINR(pos.quantity * pos.currentPrice)}
-                        </td>
-                        <td
-                          style={{
-                            textAlign: "right",
-                            fontWeight: "bold",
-                            color: pos.pnl >= 0 ? "var(--accent-green)" : "var(--accent-red)",
-                          }}
-                        >
-                          {pos.pnl >= 0 ? "+" : ""}
-                          {fmtINR(pos.pnl)}
-                        </td>
-                        <td
-                          style={{
-                            textAlign: "right",
-                            color: pos.pnlPct >= 0 ? "var(--accent-green)" : "var(--accent-red)",
-                          }}
-                        >
+                      <div key={pos.symbol} className="landing-leaderboard__row" style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr 1.5fr 1fr 1fr" + (state.positions.some(p => p.mae !== undefined) ? " 1fr" : "") + (state.positions.some(p => p.mfe !== undefined) ? " 1fr" : ""), padding: "0 16px" }}>
+                        <strong style={{ justifyContent: "flex-start" }}>{pos.symbol}</strong>
+                        <span style={{ textAlign: "right" }}>{pos.quantity}</span>
+                        <span style={{ textAlign: "right" }}>{fmtINR(pos.avgPrice, 2)}</span>
+                        <span style={{ textAlign: "right", fontWeight: 700 }}>{fmtINR(pos.currentPrice, 2)}</span>
+                        <span style={{ textAlign: "right", fontWeight: 700 }}>{fmtINR(pos.quantity * pos.currentPrice)}</span>
+                        <span style={{ textAlign: "right", fontWeight: 700, color: pos.pnl >= 0 ? "var(--accent-green)" : "var(--accent-red)" }}>
+                          {pos.pnl >= 0 ? "+" : ""}{fmtINR(pos.pnl)}
+                        </span>
+                        <span style={{ textAlign: "right", color: pos.pnlPct >= 0 ? "var(--accent-green)" : "var(--accent-red)" }}>
                           {fmtPct(pos.pnlPct)}
-                        </td>
+                        </span>
                         {pos.mae !== undefined && (
-                          <td style={{ textAlign: "right", color: "var(--accent-red)", fontSize: "0.8rem" }}>
-                            {fmtPct(pos.mae)}
-                          </td>
+                          <span style={{ textAlign: "right", color: "var(--accent-red)", fontSize: "12px" }}>{fmtPct(pos.mae)}</span>
                         )}
                         {pos.mfe !== undefined && (
-                          <td style={{ textAlign: "right", color: "var(--accent-green)", fontSize: "0.8rem" }}>
-                            {fmtPct(pos.mfe)}
-                          </td>
+                          <span style={{ textAlign: "right", color: "var(--accent-green)", fontSize: "12px" }}>{fmtPct(pos.mfe)}</span>
                         )}
-                      </tr>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                  </div>
+                </div>
+              )}
 
-            {/* Cash row */}
-            <div
-              style={{
-                marginTop: "1.5rem",
-                borderTop: "2px solid #000",
-                paddingTop: "0.75rem",
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: "0.9rem",
-              }}
-            >
-              <span style={{ color: "#666" }}>Cash available</span>
-              <span style={{ fontWeight: "bold" }}>{fmtINR(state.cash)}</span>
+              {/* Cash row */}
+              <div style={{ marginTop: "32px", borderTop: "1px solid var(--landing-line)", paddingTop: "16px", display: "flex", justifyContent: "space-between", fontSize: "16px" }}>
+                <span style={{ color: "var(--landing-muted)" }}>Cash available</span>
+                <span style={{ fontWeight: 800 }}>{fmtINR(state.cash)}</span>
+              </div>
             </div>
+
           </div>
-        </div>
+        </section>
       )}
     </main>
   );

@@ -14,17 +14,23 @@ export default function ModelTabs({
     active?: string | null; // modelId of the active tab, or null for Aggregate
 }) {
     return (
-        <div style={{ display: "flex", borderBottom: "2px solid #000", fontSize: "0.85rem" }}>
+        <div style={{ 
+            display: "flex", 
+            borderBottom: "1px solid var(--landing-line)", 
+            fontSize: "14px",
+            fontFamily: "var(--font-mono), monospace",
+            background: "var(--landing-surface-low)"
+        }}>
             <Link
                 href="/"
                 style={{
                     display: "flex",
                     alignItems: "center",
-                    padding: "0.5rem 1rem",
-                    borderRight: "2px solid #000",
-                    fontWeight: "bold",
-                    backgroundColor: !active ? "#000" : "transparent",
-                    color: !active ? "#fff" : "#000",
+                    padding: "8px 16px",
+                    borderRight: "1px solid var(--landing-line)",
+                    fontWeight: !active ? 800 : 400,
+                    backgroundColor: !active ? "var(--landing-surface)" : "transparent",
+                    color: "var(--landing-line)",
                     whiteSpace: "nowrap",
                     textDecoration: "none",
                 }}
@@ -40,11 +46,11 @@ export default function ModelTabs({
                         style={{
                             display: "flex",
                             alignItems: "center",
-                            padding: "0.5rem 1rem",
-                            borderRight: "2px solid #000",
-                            backgroundColor: isActive ? "#000" : m.color,
-                            color: isActive ? "#fff" : "#000",
-                            fontWeight: isActive ? "bold" : "normal",
+                            padding: "8px 16px",
+                            borderRight: "1px solid var(--landing-line)",
+                            backgroundColor: isActive ? "var(--landing-purple)" : "transparent",
+                            color: "var(--landing-line)",
+                            fontWeight: isActive ? 800 : 400,
                             whiteSpace: "nowrap",
                             textDecoration: "none",
                         }}
