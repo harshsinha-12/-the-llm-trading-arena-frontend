@@ -201,9 +201,14 @@ export default async function PortfolioPage({
                 </p>
               )}
 
-              <Link href={`/trades/${modelId}`} className="landing-button" style={{ display: "block", textAlign: "center", marginTop: "24px" }}>
-                VIEW TRADE HISTORY →
-              </Link>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "24px" }}>
+                <Link href={`/trades/${modelId}`} className="landing-button" style={{ justifyContent: "center" }}>
+                  VIEW TRADE HISTORY →
+                </Link>
+                <Link href={`/models/${modelId}`} className="landing-button" style={{ justifyContent: "center" }}>
+                  VIEW MODEL THOUGHTS →
+                </Link>
+              </div>
             </div>
 
             {/* Right — positions */}

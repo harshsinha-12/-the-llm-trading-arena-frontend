@@ -61,7 +61,7 @@ export async function POST(
     const decision = await runGPT52TradeDecision(runId, modelId, strategy, { dryRun });
 
     // Persist the decision to Redis unless dry run
-    if (!dryRun && decision.orders.length > 0) {
+    if (!dryRun) {
         const client = await getRedisClient();
         try {
             const key = modelOrdersKey(runId, modelId);

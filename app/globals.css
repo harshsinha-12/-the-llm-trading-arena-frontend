@@ -314,7 +314,7 @@ a:hover {
   align-items: center;
   background: var(--landing-surface);
   display: flex;
-  height: 100%;
+  min-height: 32px;
   padding: 0 16px;
 }
 
