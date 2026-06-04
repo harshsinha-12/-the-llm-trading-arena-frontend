@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export type NavPage = "arena" | "rankings" | "simulator" | "docs" | "portfolio" | "trades";
+export type NavPage = "arena" | "rankings" | "simulator" | "docs" | "portfolio" | "trades" | "analytics";
 
 export default function Header({ active }: { active?: NavPage }) {
   return (
@@ -18,6 +18,9 @@ export default function Header({ active }: { active?: NavPage }) {
           </Link>
           <Link className={active === "simulator" ? "is-active" : ""} href="/runs">
             SIMULATOR
+          </Link>
+          <Link className={active === "analytics" ? "is-active" : ""} href="/analytics">
+            ANALYTICS
           </Link>
           <Link className={active === "docs" ? "is-active" : ""} href="/docs">
             DOCS
