@@ -116,10 +116,10 @@ export default async function PortfolioPage({
         </section>
       ) : (
         <section className="landing-section" style={{ padding: 0 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "320px 1fr", minHeight: "calc(100vh - 105px)" }}>
+          <div className="arena-shell-grid--left">
             
             {/* Left sidebar */}
-            <div style={{ padding: "32px", borderRight: "1px solid var(--landing-line)", background: "var(--landing-surface-low)" }}>
+            <div className="arena-sidebar-panel arena-sidebar-panel--low" style={{ borderRight: "1px solid var(--landing-line)" }}>
               {/* NAV card */}
               <div className="landing-mini-card" style={{ background: modelColor, border: "1px solid var(--landing-line)", marginBottom: "24px" }}>
                 <p style={{ fontSize: "10px", color: "var(--landing-muted)", textTransform: "uppercase", fontWeight: 700 }}>
@@ -134,7 +134,7 @@ export default async function PortfolioPage({
               </div>
 
               {/* Quick stats */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "32px" }}>
+              <div className="arena-stat-grid arena-stat-grid--2" style={{ gap: "12px", marginBottom: "32px" }}>
                 <div className="landing-mini-card" style={{ background: "var(--landing-surface)", padding: "16px" }}>
                   <div style={{ fontSize: "24px", fontWeight: 800 }}>{((state.cash / state.nav) * 100).toFixed(0)}%</div>
                   <div style={{ fontSize: "10px", color: "var(--landing-muted)", fontWeight: 700 }}>CASH FREE</div>
@@ -212,7 +212,7 @@ export default async function PortfolioPage({
             </div>
 
             {/* Right — positions */}
-            <div style={{ padding: "48px" }}>
+            <div className="arena-content-panel">
               <h2 style={{ fontFamily: "IBM Plex Sans", fontSize: "20px", fontWeight: 800, textTransform: "uppercase", marginBottom: "32px" }}>
                 Open Positions
               </h2>
@@ -222,7 +222,7 @@ export default async function PortfolioPage({
                   <span style={{ color: "var(--landing-muted)" }}>No open positions</span>
                 </div>
               ) : (
-                <div className="landing-dashboard" style={{ overflowX: "auto", padding: 0 }}>
+                <div className="landing-dashboard arena-table-scroll arena-table-scroll--wide">
                   <div className="landing-leaderboard__head" style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr 1.5fr 1fr 1fr" + (state.positions.some(p => p.mae !== undefined) ? " 1fr" : "") + (state.positions.some(p => p.mfe !== undefined) ? " 1fr" : ""), padding: "0 16px" }}>
                     <span style={{ textAlign: "left" }}>SYMBOL</span>
                     <span style={{ textAlign: "right" }}>QTY</span>

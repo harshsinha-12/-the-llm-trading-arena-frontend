@@ -151,12 +151,12 @@ export default async function ModelPage({
 
             {/* Main layout: trades | reasoning sidebar */}
             <section className="landing-section" style={{ padding: 0 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", minHeight: "calc(100vh - 145px)" }}>
+                <div className="arena-shell-grid" style={{ minHeight: "calc(100vh - 145px)" }}>
                     
                     {/* ── Left: trades ─────────────────────────────────────── */}
-                    <div style={{ borderRight: "1px solid var(--landing-line)", padding: "32px", overflowX: "auto" }}>
+                    <div className="arena-main-panel" style={{ padding: "32px", overflowX: "auto" }}>
                         {/* Summary stats */}
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "32px" }}>
+                        <div className="arena-stat-grid arena-stat-grid--4" style={{ marginBottom: "32px" }}>
                             {[
                                 { label: "TOTAL TRADES", value: String(trades.length) },
                                 { label: "BUY / SELL", value: `${buys} / ${sells}` },
@@ -181,7 +181,7 @@ export default async function ModelPage({
                                 <span style={{ marginTop: "16px" }}>Redis key: <code>run:{ACTIVE_RUN_ID}:model:{modelId}:trades</code></span>
                             </div>
                         ) : (
-                            <div className="landing-dashboard" style={{ overflowX: "auto", padding: 0 }}>
+                            <div className="landing-dashboard arena-table-scroll arena-table-scroll--wide">
                                 <div className="landing-leaderboard__head" style={{ gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 1.5fr 1.5fr 3fr", padding: "0 16px" }}>
                                     <span style={{ textAlign: "left" }}>DATE</span>
                                     <span style={{ textAlign: "left" }}>SYMBOL</span>
@@ -231,7 +231,7 @@ export default async function ModelPage({
                     </div>
 
                     {/* ── Right: reasoning sidebar ─────────────────────────── */}
-                    <div style={{ padding: "32px", overflowY: "auto", background: "var(--landing-surface-low)" }}>
+                    <div className="arena-sidebar-panel arena-sidebar-panel--low" style={{ padding: "32px", overflowY: "auto" }}>
                         <h3 style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "16px", fontFamily: "var(--font-mono), monospace" }}>
                             {modelName.toUpperCase()} REASONING
                         </h3>

@@ -111,11 +111,11 @@ export default function DocsPage() {
       </section>
 
       <section className="landing-section" style={{ padding: "64px 32px" }}>
-        <div className="landing-section__inner" style={{ maxWidth: "1200px", margin: "0 auto", display: "grid", gridTemplateColumns: "300px 1fr", gap: "64px" }}>
+        <div className="landing-section__inner arena-doc-split" style={{ maxWidth: "1200px", margin: "0 auto" }}>
             <div>
                 <h2 style={{ fontSize: "24px", fontWeight: 800, marginBottom: "24px" }}>Why This Exists</h2>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
+            <div className="arena-doc-card-grid">
                 <article className="landing-mini-card" style={{ background: "var(--landing-surface)" }}>
                     <h3 style={{ fontSize: "14px", fontWeight: 800, fontFamily: "var(--font-mono), monospace", marginBottom: "8px" }}>Problem</h3>
                     <p style={{ fontSize: "14px", color: "var(--landing-muted)", lineHeight: 1.5 }}>
@@ -135,17 +135,17 @@ export default function DocsPage() {
       </section>
 
       <section className="landing-section" style={{ padding: "64px 32px", background: "var(--landing-surface-low)", borderTop: "1px solid var(--landing-line)", borderBottom: "1px solid var(--landing-line)" }}>
-        <div className="landing-section__inner" style={{ maxWidth: "1200px", margin: "0 auto", display: "grid", gridTemplateColumns: "300px 1fr", gap: "64px" }}>
+        <div className="landing-section__inner arena-doc-split" style={{ maxWidth: "1200px", margin: "0 auto" }}>
             <div>
                 <h2 style={{ fontSize: "24px", fontWeight: 800, marginBottom: "24px" }}>Market Scope & Rules</h2>
                 <div style={{ padding: "16px", background: "var(--landing-surface)", border: "1px solid var(--landing-line)", boxShadow: "4px 4px 0 0 var(--landing-line)" }}>
                     <span style={{ display: "block", fontSize: "10px", fontWeight: 800, fontFamily: "var(--font-mono), monospace", color: "var(--landing-muted)", marginBottom: "8px" }}>SCORING FORMULA</span>
-                    <code style={{ fontSize: "12px", fontWeight: 800, fontFamily: "var(--font-mono), monospace", color: "var(--accent-red)" }}>score = totalReturn - 0.5 * maxDrawdown - 0.1 * turnoverCost</code>
+                    <code className="arena-code-line" style={{ fontSize: "12px", fontWeight: 800, fontFamily: "var(--font-mono), monospace", color: "var(--accent-red)" }}>score = totalReturn - 0.5 * maxDrawdown - 0.1 * turnoverCost</code>
                 </div>
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
                 {rules.map(([label, value]) => (
-                    <div key={label} style={{ display: "grid", gridTemplateColumns: "200px 1fr", padding: "16px 0", borderBottom: "1px solid var(--landing-line)" }}>
+                    <div key={label} className="arena-doc-kv-row" style={{ padding: "16px 0", borderBottom: "1px solid var(--landing-line)" }}>
                         <span style={{ fontSize: "14px", fontWeight: 800, fontFamily: "var(--font-mono), monospace" }}>{label}</span>
                         <strong style={{ fontSize: "14px", fontWeight: 400, color: "var(--landing-muted)" }}>{value}</strong>
                     </div>
@@ -157,7 +157,7 @@ export default function DocsPage() {
       <section className="landing-section" style={{ padding: "64px 32px" }}>
         <div className="landing-section__inner" style={{ maxWidth: "1200px", margin: "0 auto" }}>
             <h2 style={{ fontSize: "24px", fontWeight: 800, marginBottom: "32px" }}>Tick Packet Before Execution</h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "32px" }}>
+            <div className="arena-doc-card-grid">
             {featureGroups.map(([title, copy]) => (
                 <article key={title} className="landing-mini-card" style={{ background: "var(--landing-surface)" }}>
                 <h3 style={{ fontSize: "14px", fontWeight: 800, fontFamily: "var(--font-mono), monospace", marginBottom: "8px" }}>{title}</h3>
@@ -169,7 +169,7 @@ export default function DocsPage() {
       </section>
 
       <section className="landing-section" style={{ padding: "64px 32px", background: "var(--landing-surface-container)", borderTop: "1px solid var(--landing-line)" }}>
-        <div className="landing-section__inner" style={{ maxWidth: "1200px", margin: "0 auto", display: "grid", gridTemplateColumns: "300px 1fr", gap: "64px" }}>
+        <div className="landing-section__inner arena-doc-split" style={{ maxWidth: "1200px", margin: "0 auto" }}>
             <div>
                 <h2 style={{ fontSize: "24px", fontWeight: 800, marginBottom: "16px" }}>Redis Storage Contract</h2>
                 <p style={{ fontSize: "14px", color: "var(--landing-muted)", lineHeight: 1.5 }}>

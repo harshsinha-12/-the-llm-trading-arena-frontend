@@ -53,10 +53,10 @@ export default async function RunsPage() {
         </section>
       ) : (
         <section className="landing-section" style={{ padding: 0 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", minHeight: "calc(100vh - 105px)" }}>
+          <div className="arena-shell-grid">
             
             {/* Left — run details */}
-            <div style={{ padding: "48px", borderRight: "1px solid var(--landing-line)" }}>
+            <div className="arena-main-panel">
               <h2 style={{ fontFamily: "IBM Plex Sans", fontSize: "24px", fontWeight: 800, marginBottom: "32px", textTransform: "uppercase" }}>
                 {config.season ?? "Season 1"}
               </h2>
@@ -81,7 +81,7 @@ export default async function RunsPage() {
               <h3 style={{ fontSize: "12px", color: "var(--landing-muted)", marginBottom: "16px", borderTop: "1px solid var(--landing-line)", paddingTop: "32px" }}>
                 TRADING RULES
               </h3>
-              <div className="landing-stats" style={{ gridTemplateColumns: "repeat(3, 1fr)", borderBottom: 0, gap: "16px", background: "transparent" }}>
+              <div className="landing-stats arena-stat-grid arena-stat-grid--3" style={{ borderBottom: 0, background: "transparent" }}>
                 {[
                   { label: "STARTING CAPITAL", value: fmtCurrency(config.rules.startingCapital) },
                   { label: "MAX POSITIONS", value: String(config.rules.maxPositions) },
@@ -100,12 +100,12 @@ export default async function RunsPage() {
               {/* Scoring formula */}
               <div className="landing-mini-card" style={{ marginTop: "32px", padding: "24px", background: "var(--landing-surface-low)" }}>
                 <h3 style={{ fontSize: "12px", color: "var(--landing-muted)", marginBottom: "8px" }}>SCORING FORMULA</h3>
-                <code style={{ fontSize: "14px", fontWeight: 700 }}>score = totalReturn − 0.5 × maxDrawdown − 0.1 × turnoverCost</code>
+                <code className="arena-code-line" style={{ fontSize: "14px", fontWeight: 700 }}>score = totalReturn − 0.5 × maxDrawdown − 0.1 × turnoverCost</code>
               </div>
             </div>
 
             {/* Right — model lineup */}
-            <div style={{ padding: "48px 32px", background: "var(--landing-surface-container)" }}>
+            <div className="arena-sidebar-panel">
               <div style={{ textAlign: "center", marginBottom: "32px" }}>
                 <h3 style={{ fontFamily: "IBM Plex Sans", fontSize: "18px", fontWeight: 800 }}>MODEL LINEUP</h3>
                 <p style={{ fontSize: "12px", color: "var(--landing-muted)" }}>{config.models.length} competing models</p>

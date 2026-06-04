@@ -250,11 +250,11 @@ export default async function AnalyticsPage() {
 
           {/* ── Summary stats ─────────────────────────────────────────── */}
           <div
+            className="arena-stat-grid arena-stat-grid--4"
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
               border: "1px solid var(--landing-line)",
               boxShadow: "4px 4px 0 0 var(--landing-line)",
+              gap: 0,
               marginBottom: "32px",
             }}
           >
@@ -512,9 +512,8 @@ export default async function AnalyticsPage() {
 
               {/* ── Heatmap + Trade Activity ──────────────────────────── */}
               <div
+                className="arena-stat-grid arena-stat-grid--2"
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
                   gap: "24px",
                   marginBottom: "32px",
                 }}
@@ -730,7 +729,7 @@ export default async function AnalyticsPage() {
                         </div>
 
                         {/* Quick stats */}
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+                        <div className="arena-stat-grid arena-stat-grid--3" style={{ gap: "12px" }}>
                           {[
                             { label: "TOTAL TRADES", value: String(totalTrades) },
                             { label: "ACTIVE DAYS", value: String(tradesDays.length) },

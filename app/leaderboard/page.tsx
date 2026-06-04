@@ -73,7 +73,7 @@ export default async function LeaderboardPage() {
               <span style={{ marginTop: "16px" }}>Redis key: <code>run:{ACTIVE_RUN_ID}:leaderboard:latest</code></span>
             </div>
           ) : (
-            <div className="landing-dashboard" style={{ overflowX: "auto", padding: "0" }}>
+            <div className="landing-dashboard arena-table-scroll arena-table-scroll--wide">
               <div className="landing-leaderboard__head" style={{ gridTemplateColumns: "40px 2fr 1fr 1fr 1fr 1fr 1fr 1fr 1.5fr", padding: "0 16px" }}>
                 <span>#</span>
                 <span style={{ textAlign: "left" }}>MODEL</span>
@@ -131,7 +131,7 @@ export default async function LeaderboardPage() {
           {/* Scoring formula */}
           <div className="landing-mini-card" style={{ marginTop: "32px", padding: "24px", background: "var(--landing-surface-low)" }}>
             <h3 style={{ fontSize: "12px", color: "var(--landing-muted)", marginBottom: "8px" }}>SCORING FORMULA</h3>
-            <code style={{ fontSize: "14px", fontWeight: 700 }}>score = totalReturn − 0.5 × maxDrawdown − 0.1 × turnoverCost</code>
+                <code className="arena-code-line" style={{ fontSize: "14px", fontWeight: 700 }}>score = totalReturn − 0.5 × maxDrawdown − 0.1 × turnoverCost</code>
           </div>
 
           {/* Link to all models */}

@@ -70,7 +70,7 @@ export default async function TradesPage({
       <section className="landing-section">
         <div className="landing-section__inner">
           {/* Summary stats */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "32px" }}>
+          <div className="arena-stat-grid arena-stat-grid--4" style={{ marginBottom: "32px" }}>
             {[
               { label: "TOTAL TRADES", value: String(trades.length) },
               { label: "BUY / SELL", value: `${buys} / ${sells}` },
@@ -97,7 +97,7 @@ export default async function TradesPage({
               <span style={{ marginTop: "16px" }}>Redis key: <code>run:{ACTIVE_RUN_ID}:model:{modelId}:trades</code></span>
             </div>
           ) : (
-            <div className="landing-dashboard" style={{ overflowX: "auto", padding: 0 }}>
+            <div className="landing-dashboard arena-table-scroll arena-table-scroll--wide">
               <div className="landing-leaderboard__head" style={{ gridTemplateColumns: "1.5fr 1fr 1fr 1fr 1.5fr 1.5fr 1.5fr 3fr", padding: "0 16px" }}>
                 <span style={{ textAlign: "left" }}>DATE</span>
                 <span style={{ textAlign: "left" }}>SYMBOL</span>
