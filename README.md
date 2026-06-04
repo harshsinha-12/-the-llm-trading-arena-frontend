@@ -218,6 +218,60 @@ All jobs: Redis-locked, retry-safe, idempotent.
 
 * [ ] News ingestion + ValYu enrichment
 * [ ] Better quant context
+
+---
+
+## Screenshots
+
+### System Architecture
+
+High-level system architecture:
+
+![High-Level System Architecture of LLM Trading Arena](images/report-image-001.png)
+
+Alternative architecture view:
+
+![High-level Architecture of LLM Trading Arena](images/report-image-002.png)
+
+### Dashboard Views
+
+Arena landing page:
+
+![Arena landing page](images/report-image-005.png)
+
+Run configuration and model lineup:
+
+![Run configuration and model lineup](images/report-image-004.png)
+
+Portfolio detail view:
+
+![Portfolio detail view](images/report-image-011.jpg)
+
+### Performance Charts
+
+Dashboard-derived NAV curve:
+
+![Dashboard-derived NAV Curve](images/report-image-006.png)
+
+Loss decomposition at final snapshot:
+
+![Loss Decomposition at Final Snapshot](images/report-image-010.png)
+
+Trade outcome distribution:
+
+![Trade Outcome Distribution](images/report-image-012.png)
+
+Payoff asymmetry:
+
+![Payoff Asymmetry](images/report-image-003.png)
+
+Open position mark-to-market P&L:
+
+![Open Position Mark-to-Market P&L](images/report-image-007.jpg)
+
+Final portfolio allocation by NAV:
+
+![Final Portfolio Allocation by NAV](images/report-image-008.jpg)
 * [ ] Risk metrics dashboard
 * [ ] Hybrid tick mode
 
