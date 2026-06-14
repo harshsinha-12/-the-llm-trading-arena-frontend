@@ -4,6 +4,7 @@ import { ACTIVE_RUN_ID } from "@/config";
 import { runLeaderboardKey, runConfigKey } from "@/lib/run-redis-keys";
 import { LeaderboardEntry, RunConfig, ModelConfig } from "@/types/global";
 import Link from "next/link";
+import { normalizeModelId, normalizeRunConfig } from "@/lib/model-id";
 
 const MODEL_COLORS = ["#d7d7fd", "#d7f5d0", "#ffebeb", "#f3f3f3"];
 
@@ -33,8 +34,17 @@ export default async function LeaderboardPage() {
       client.get(runLeaderboardKey(ACTIVE_RUN_ID)),
       client.get(runConfigKey(ACTIVE_RUN_ID)),
     ]);
-    if (lbRaw) entries = JSON.parse(lbRaw);
-    if (cfgRaw) config = JSON.parse(cfgRaw);
+    if (lbRaw) {
+      entries = (JSON.parse(lbRaw) as LeaderboardEntry[]).map((entry) => {
+        const modelId = normalizeModelId(entry.modelId);
+        return {
+          ...entry,
+          modelId,
+          name: modelId === "gpt-5-5" ? "GPT-5.5" : entry.name,
+        };
+      });
+    }
+    if (cfgRaw) config = normalizeRunConfig(JSON.parse(cfgRaw));
   } finally {
     await client.disconnect();
   }

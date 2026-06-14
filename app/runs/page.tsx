@@ -4,6 +4,7 @@ import { ACTIVE_RUN_ID } from "@/config";
 import { runConfigKey } from "@/lib/run-redis-keys";
 import { RunConfig } from "@/types/global";
 import Link from "next/link";
+import { normalizeRunConfig } from "@/lib/model-id";
 
 const MODEL_COLORS = ["#d7d7fd", "#d7f5d0", "#ffebeb", "#f3f3f3"];
 
@@ -19,7 +20,7 @@ export default async function RunsPage() {
 
   try {
     const raw = await client.get(runConfigKey(ACTIVE_RUN_ID));
-    if (raw) config = JSON.parse(raw);
+    if (raw) config = normalizeRunConfig(JSON.parse(raw));
   } finally {
     await client.disconnect();
   }

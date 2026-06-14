@@ -6,6 +6,7 @@ import { ACTIVE_RUN_ID, SEASON1_MODELS } from "@/config";
 import { modelTradesKey, modelOrdersKey, runConfigKey } from "@/lib/run-redis-keys";
 import { Trade, RunConfig } from "@/types/global";
 import Link from "next/link";
+import { getModelIdReadCandidates, normalizeModelId, normalizeRunConfig } from "@/lib/model-id";
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
@@ -59,6 +60,30 @@ function confidenceColor(c: number) {
     return "var(--accent-red)";
 }
 
+async function readFirstModelValue(
+    client: Awaited<ReturnType<typeof getRedisClient>>,
+    modelIds: string[],
+    keyFor: (modelId: string) => string
+): Promise<string | null> {
+    for (const modelId of modelIds) {
+        const raw = await client.get(keyFor(modelId));
+        if (raw !== null) return raw;
+    }
+    return null;
+}
+
+async function readFirstModelList(
+    client: Awaited<ReturnType<typeof getRedisClient>>,
+    modelIds: string[],
+    keyFor: (modelId: string) => string
+): Promise<string[]> {
+    for (const modelId of modelIds) {
+        const items = await client.lRange(keyFor(modelId), -8, -1);
+        if (items.length > 0) return items;
+    }
+    return [];
+}
+
 // ─── page ─────────────────────────────────────────────────────────────────────
 
 export default async function ModelPage({
@@ -66,7 +91,8 @@ export default async function ModelPage({
 }: {
     params: Promise<{ modelId: string }>;
 }) {
-    const { modelId } = await params;
+    const { modelId: requestedModelId } = await params;
+    const modelId = normalizeModelId(requestedModelId);
     const client = await getRedisClient();
 
     let trades: Trade[] = [];
@@ -74,15 +100,16 @@ export default async function ModelPage({
     let decisions: DecisionEntry[] = [];
 
     try {
+        const modelIdCandidates = getModelIdReadCandidates(modelId);
         const [tradesRaw, cfgRaw, decisionItems] = await Promise.all([
-            client.get(modelTradesKey(ACTIVE_RUN_ID, modelId)),
+            readFirstModelValue(client, modelIdCandidates, (candidate) => modelTradesKey(ACTIVE_RUN_ID, candidate)),
             client.get(runConfigKey(ACTIVE_RUN_ID)),
             // Get the 8 most recent decisions from the Redis list (newest last → reverse below)
-            client.lRange(modelOrdersKey(ACTIVE_RUN_ID, modelId), -8, -1),
+            readFirstModelList(client, modelIdCandidates, (candidate) => modelOrdersKey(ACTIVE_RUN_ID, candidate)),
         ]);
 
         if (tradesRaw) trades = JSON.parse(tradesRaw);
-        if (cfgRaw) config = JSON.parse(cfgRaw);
+        if (cfgRaw) config = normalizeRunConfig(JSON.parse(cfgRaw));
 
         decisions = decisionItems
             .map((raw) => {

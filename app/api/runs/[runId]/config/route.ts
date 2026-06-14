@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRedisClient } from "@/lib/redis";
 import { runConfigKey } from "@/lib/run-redis-keys";
+import { normalizeRunConfig } from "@/lib/model-id";
 
 export async function GET(
     _req: NextRequest,
@@ -14,7 +15,7 @@ export async function GET(
         if (raw === null) {
             return NextResponse.json({ error: "Run config not found" }, { status: 404 });
         }
-        return NextResponse.json(JSON.parse(raw));
+        return NextResponse.json(normalizeRunConfig(JSON.parse(raw)));
     } finally {
         await client.disconnect();
     }

@@ -4,6 +4,7 @@ import { ACTIVE_RUN_ID } from "@/config";
 import { modelTradesKey, runConfigKey } from "@/lib/run-redis-keys";
 import { Trade, RunConfig } from "@/types/global";
 import Link from "next/link";
+import { getModelIdReadCandidates, normalizeModelId, normalizeRunConfig } from "@/lib/model-id";
 
 const MODEL_COLORS = ["#d7d7fd", "#d7f5d0", "#ffebeb", "#f3f3f3"];
 
@@ -11,23 +12,36 @@ function fmtINR(val: number, decimals = 0) {
   return `₹${val.toLocaleString("en-IN", { maximumFractionDigits: decimals })}`;
 }
 
+async function readFirstModelValue(
+  client: Awaited<ReturnType<typeof getRedisClient>>,
+  modelIds: string[],
+  keyFor: (modelId: string) => string
+): Promise<string | null> {
+  for (const modelId of modelIds) {
+    const raw = await client.get(keyFor(modelId));
+    if (raw !== null) return raw;
+  }
+  return null;
+}
+
 export default async function TradesPage({
   params,
 }: {
   params: Promise<{ modelId: string }>;
 }) {
-  const { modelId } = await params;
+  const { modelId: requestedModelId } = await params;
+  const modelId = normalizeModelId(requestedModelId);
   const client = await getRedisClient();
   let trades: Trade[] = [];
   let config: RunConfig | null = null;
 
   try {
     const [tradesRaw, cfgRaw] = await Promise.all([
-      client.get(modelTradesKey(ACTIVE_RUN_ID, modelId)),
+      readFirstModelValue(client, getModelIdReadCandidates(modelId), (candidate) => modelTradesKey(ACTIVE_RUN_ID, candidate)),
       client.get(runConfigKey(ACTIVE_RUN_ID)),
     ]);
     if (tradesRaw) trades = JSON.parse(tradesRaw);
-    if (cfgRaw) config = JSON.parse(cfgRaw);
+    if (cfgRaw) config = normalizeRunConfig(JSON.parse(cfgRaw));
   } finally {
     await client.disconnect();
   }

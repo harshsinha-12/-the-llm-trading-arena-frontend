@@ -6,6 +6,7 @@ import { ohlcKey } from "@/lib/redis-keys";
 import { ModelState, RunConfig, Trade, PortfolioAnalytics, OHLC, Position } from "@/types/global";
 import { computePortfolioAnalytics, savePortfolioAnalytics } from "@/lib/portfolio-analytics";
 import Link from "next/link";
+import { getModelIdReadCandidates, normalizeModelId, normalizeRunConfig } from "@/lib/model-id";
 
 const MODEL_COLORS = ["#d7d7fd", "#d7f5d0", "#ffebeb", "#f3f3f3"];
 
@@ -46,25 +47,39 @@ function fmtPct(val: number, showSign = true) {
   return `${sign}${(val * 100).toFixed(2)}%`;
 }
 
+async function readFirstModelValue(
+  client: Awaited<ReturnType<typeof getRedisClient>>,
+  modelIds: string[],
+  keyFor: (modelId: string) => string
+): Promise<string | null> {
+  for (const modelId of modelIds) {
+    const raw = await client.get(keyFor(modelId));
+    if (raw !== null) return raw;
+  }
+  return null;
+}
+
 export default async function PortfolioPage({
   params,
 }: {
   params: Promise<{ modelId: string }>;
 }) {
-  const { modelId } = await params;
+  const { modelId: requestedModelId } = await params;
+  const modelId = normalizeModelId(requestedModelId);
   const client = await getRedisClient();
   let state: ModelState | null = null;
   let config: RunConfig | null = null;
   let analytics: PortfolioAnalytics | null = null;
 
   try {
+    const modelIdCandidates = getModelIdReadCandidates(modelId);
     const [stateRaw, cfgRaw, tradesRaw] = await Promise.all([
-      client.get(modelStateKey(ACTIVE_RUN_ID, modelId)),
+      readFirstModelValue(client, modelIdCandidates, (candidate) => modelStateKey(ACTIVE_RUN_ID, candidate)),
       client.get(runConfigKey(ACTIVE_RUN_ID)),
-      client.get(modelTradesKey(ACTIVE_RUN_ID, modelId)),
+      readFirstModelValue(client, modelIdCandidates, (candidate) => modelTradesKey(ACTIVE_RUN_ID, candidate)),
     ]);
-    if (stateRaw) state = JSON.parse(stateRaw);
-    if (cfgRaw) config = JSON.parse(cfgRaw);
+    if (stateRaw) state = { ...JSON.parse(stateRaw), modelId };
+    if (cfgRaw) config = normalizeRunConfig(JSON.parse(cfgRaw));
 
     if (state) {
       state = await enrichWithCurrentPrices(client, state);

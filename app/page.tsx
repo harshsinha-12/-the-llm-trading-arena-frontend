@@ -12,6 +12,7 @@ import {
   runLeaderboardKey,
 } from "@/lib/run-redis-keys";
 import type { LeaderboardEntry, ModelState, PortfolioAnalytics, RunConfig, Trade } from "@/types/global";
+import { getModelIdReadCandidates, normalizeModelId, normalizeRunConfig } from "@/lib/model-id";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +61,18 @@ function sparklinePath(value: number, rank: number) {
   return "M0,18 L20,15 L40,16 L60,8 L80,10 L100,4";
 }
 
+async function readFirstModelValue(
+  client: Awaited<ReturnType<typeof getRedisClient>>,
+  modelIds: string[],
+  keyFor: (modelId: string) => string
+): Promise<string | null> {
+  for (const modelId of modelIds) {
+    const raw = await client.get(keyFor(modelId));
+    if (raw !== null) return raw;
+  }
+  return null;
+}
+
 async function loadArenaData(): Promise<ArenaData> {
   const client = await getRedisClient();
 
@@ -70,13 +83,22 @@ async function loadArenaData(): Promise<ArenaData> {
       getConstituentMbCodes(client),
     ]);
 
-    const config = cfgRaw ? (JSON.parse(cfgRaw) as RunConfig) : null;
-    let leaderboard = lbRaw ? (JSON.parse(lbRaw) as LeaderboardEntry[]) : [];
+    const config = cfgRaw ? normalizeRunConfig(JSON.parse(cfgRaw) as RunConfig) : null;
+    let leaderboard = lbRaw
+      ? (JSON.parse(lbRaw) as LeaderboardEntry[]).map((entry) => {
+          const modelId = normalizeModelId(entry.modelId);
+          return {
+            ...entry,
+            modelId,
+            name: modelId === "gpt-5-5" ? "GPT-5.5" : entry.name,
+          };
+        })
+      : [];
     const modelIds: string[] = (config?.models.map((model) => model.modelId) ?? leaderboard.map((entry) => entry.modelId))
       .filter((modelId): modelId is string => typeof modelId === "string" && modelId.length > 0);
     const [tradeSets, stateSets, analyticsSets] = await Promise.all([
       Promise.all(modelIds.map(async (modelId) => {
-        const raw = await client.get(modelTradesKey(ACTIVE_RUN_ID, modelId));
+        const raw = await readFirstModelValue(client, getModelIdReadCandidates(modelId), (candidate) => modelTradesKey(ACTIVE_RUN_ID, candidate));
         if (!raw) return [] as Trade[];
         try {
           return JSON.parse(raw) as Trade[];
@@ -85,16 +107,16 @@ async function loadArenaData(): Promise<ArenaData> {
         }
       })),
       Promise.all(modelIds.map(async (modelId) => {
-        const raw = await client.get(modelStateKey(ACTIVE_RUN_ID, modelId));
+        const raw = await readFirstModelValue(client, getModelIdReadCandidates(modelId), (candidate) => modelStateKey(ACTIVE_RUN_ID, candidate));
         if (!raw) return null;
         try {
-          return JSON.parse(raw) as ModelState;
+          return { ...JSON.parse(raw), modelId } as ModelState;
         } catch {
           return null;
         }
       })),
       Promise.all(modelIds.map(async (modelId) => {
-        const raw = await client.get(modelPfAnalyticsKey(ACTIVE_RUN_ID, modelId));
+        const raw = await readFirstModelValue(client, getModelIdReadCandidates(modelId), (candidate) => modelPfAnalyticsKey(ACTIVE_RUN_ID, candidate));
         if (!raw) return null;
         try {
           return JSON.parse(raw) as PortfolioAnalytics;

@@ -61,7 +61,7 @@ export default function TriggerDecisionButton({ runId, modelId, modelColor }: Pr
                     transition: "background-color 0.15s",
                 }}
             >
-                {state === "loading" ? "⏳ Running…" : "▶ Run GPT-5.2"}
+                {state === "loading" ? "⏳ Running…" : "▶ Run GPT-5.5"}
             </button>
 
             {state === "done" && result && (

@@ -101,7 +101,7 @@ export default function DocsPage() {
               <div>[SIM] Generating cross-sectional momentum ranks...</div>
               <div>[SIM] Preparing state packets for 12 models...</div>
               <br />
-              <div>[AGENT] Invoking GPT-5.2... <span style={{ color: "var(--landing-line)" }}>Decision: BUY RELIANCE x45</span></div>
+              <div>[AGENT] Invoking GPT-5.5... <span style={{ color: "var(--landing-line)" }}>Decision: BUY RELIANCE x45</span></div>
               <div>[AGENT] Invoking Claude-3.5... <span style={{ color: "var(--landing-line)" }}>Decision: SELL HDFCBANK x120</span></div>
               <br />
               <div style={{ color: "var(--landing-line)", fontWeight: 800 }}>[EXECUTION] Orders queued for next open.</div>

@@ -1,5 +1,5 @@
 // POST /api/runs/[runId]/models/[modelId]/decide
-// Triggers the GPT-5.2 trading agent for a specific model and saves the decision.
+// Triggers the GPT-5.5 trading agent for a specific model and saves the decision.
 //
 // Body (JSON, all optional):
 //   strategy  string   — model's strategy description (looked up from run config if omitted)
@@ -13,16 +13,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRedisClient } from "@/lib/redis";
 import { runConfigKey, modelOrdersKey } from "@/lib/run-redis-keys";
-import { runGPT52TradeDecision } from "@/lib/chatbot-gpt52";
+import { runGPT55TradeDecision } from "@/lib/chatbot-gpt55";
 import { RunConfig } from "@/types/global";
 import { SEASON1_MODELS } from "@/config";
 import { logger } from "@/lib/logger";
+import { normalizeModelId, normalizeRunConfig } from "@/lib/model-id";
 
 export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ runId: string; modelId: string }> }
 ) {
-    const { runId, modelId } = await params;
+    const { runId, modelId: requestedModelId } = await params;
+    const modelId = normalizeModelId(requestedModelId);
 
     let strategy = "General";
     let dryRun = false;
@@ -42,7 +44,11 @@ export async function POST(
         try {
             const cfgRaw = await client.get(runConfigKey(runId));
             if (cfgRaw) {
-                const config: RunConfig = JSON.parse(cfgRaw);
+                const parsedConfig: RunConfig = JSON.parse(cfgRaw);
+                const config = normalizeRunConfig(parsedConfig);
+                if (JSON.stringify(config.models) !== JSON.stringify(parsedConfig.models)) {
+                    await client.set(runConfigKey(runId), JSON.stringify(config));
+                }
                 const modelConfig = config.models.find((m) => m.modelId === modelId);
                 if (modelConfig?.strategy) strategy = modelConfig.strategy;
             } else {
@@ -58,7 +64,7 @@ export async function POST(
 
     logger.info(`/decide triggered — runId=${runId} modelId=${modelId} strategy="${strategy}" dryRun=${dryRun}`);
 
-    const decision = await runGPT52TradeDecision(runId, modelId, strategy, { dryRun });
+    const decision = await runGPT55TradeDecision(runId, modelId, strategy, { dryRun });
 
     // Persist the decision to Redis unless dry run
     if (!dryRun) {
@@ -81,6 +87,7 @@ export async function POST(
     return NextResponse.json({
         runId,
         modelId,
+        requestedModelId,
         dryRun,
         decidedAt: new Date().toISOString(),
         ...decision,

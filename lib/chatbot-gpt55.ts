@@ -1,8 +1,8 @@
 /**
- * GPT-5.2 Trading Agent
+ * GPT-5.5 Trading Agent
  *
  * Loads model state, portfolio analytics, technicals, and news from Redis,
- * builds a structured prompt, calls GPT-5.2 via Azure OpenAI (Sweden),
+ * builds a structured prompt, calls GPT-5.5 via OpenAI,
  * and returns a validated TradeDecision.
  *
  * Invalid JSON → retry once → no-trade (null orders). No silent failures.
@@ -10,7 +10,8 @@
 
 import { getRedisClient } from "@/lib/redis";
 import { getAIClient } from "@/lib/ai-client";
-import { GPT_5_2, API_VERSIONS } from "@/lib/models";
+import { GPT_5_5 } from "@/lib/models";
+import { getModelIdReadCandidates, normalizeModelId, normalizeRunConfig } from "@/lib/model-id";
 import { logger } from "@/lib/logger";
 import {
     modelStateKey,
@@ -56,10 +57,23 @@ function makeInitialState(modelId: string): ModelState {
     };
 }
 
+async function readFirstModelValue(
+    client: Awaited<ReturnType<typeof getRedisClient>>,
+    runId: string,
+    modelIds: string[],
+    keyFor: (runId: string, modelId: string) => string
+): Promise<{ raw: string | null; modelId: string | null }> {
+    for (const modelId of modelIds) {
+        const raw = await client.get(keyFor(runId, modelId));
+        if (raw) return { raw, modelId };
+    }
+    return { raw: null, modelId: null };
+}
+
 // ─── Prompt builder ───────────────────────────────────────────────────────────
 
 function buildSystemPrompt(): string {
-    return `You are GPT-5.2, a disciplined quantitative portfolio manager competing in the Indian Trading Arena (Nifty 50 paper trading).
+    return `You are GPT-5.5, a disciplined quantitative portfolio manager competing in the Indian Trading Arena (Nifty 50 paper trading).
 
 RULES:
 - Universe: Nifty 50 stocks only. Use the mbCode shown in brackets as the "symbol" field in orders.
@@ -173,12 +187,14 @@ function parseDecision(raw: string): TradeDecision | null {
 
 // ─── Main agent function ──────────────────────────────────────────────────────
 
-export async function runGPT52TradeDecision(
+export async function runGPT55TradeDecision(
     runId: string,
-    modelId: string,
+    requestedModelId: string,
     strategy: string,
     options: { dryRun?: boolean } = {}
 ): Promise<TradeDecision> {
+    const modelId = normalizeModelId(requestedModelId);
+    const modelIdCandidates = getModelIdReadCandidates(modelId);
     const client = await getRedisClient();
 
     let state: ModelState | null = null;
@@ -187,19 +203,21 @@ export async function runGPT52TradeDecision(
     let stockData: StockData[] = [];
 
     try {
-        // Load model state + trade history in parallel
-        const [stateRaw, tradesRaw, analyticsRaw, cfgRaw] = await Promise.all([
-            client.get(modelStateKey(runId, modelId)),
-            client.get(modelTradesKey(runId, modelId)),
-            client.get(modelPfAnalyticsKey(runId, modelId)),
+        const [stateResult, tradesResult, analyticsResult, cfgRaw] = await Promise.all([
+            readFirstModelValue(client, runId, modelIdCandidates, modelStateKey),
+            readFirstModelValue(client, runId, modelIdCandidates, modelTradesKey),
+            readFirstModelValue(client, runId, modelIdCandidates, modelPfAnalyticsKey),
             client.get(runConfigKey(runId)),
         ]);
+        const stateRaw = stateResult.raw;
+        const tradesRaw = tradesResult.raw;
+        const analyticsRaw = analyticsResult.raw;
 
         if (!stateRaw) {
             // Engine hasn't written state yet — boot with the initial capital so the LLM
             // can still make its first set of buy decisions.
             state = makeInitialState(modelId);
-            logger.warn(`GPT-5.2: No state in Redis for ${modelId} — using fresh ₹${STARTING_CAPITAL.toLocaleString("en-IN")} starting state.`);
+            logger.warn(`GPT-5.5: No state in Redis for ${modelId} — using fresh ₹${STARTING_CAPITAL.toLocaleString("en-IN")} starting state.`);
 
             // Persist so the portfolio page and subsequent runs can read it
             await client.set(modelStateKey(runId, modelId), JSON.stringify(state));
@@ -213,7 +231,7 @@ export async function runGPT52TradeDecision(
                     status: "active",
                     startDate: new Date().toISOString().slice(0, 10),
                     universe: [],
-                    models: SEASON1_MODELS.map((m) => ({ modelId: m.modelId, name: m.name, llm: "gpt-5.2", strategy: m.strategy })),
+                    models: SEASON1_MODELS.map((m) => ({ modelId: m.modelId, name: m.name, llm: "gpt-5.5", strategy: m.strategy })),
                     rules: {
                         startingCapital: STARTING_CAPITAL,
                         maxPositions: 10,
@@ -223,13 +241,30 @@ export async function runGPT52TradeDecision(
                     },
                 };
                 await client.set(runConfigKey(runId), JSON.stringify(seedConfig));
-                logger.info("GPT-5.2: Seeded run config to Redis.");
+                logger.info("GPT-5.5: Seeded run config to Redis.");
             }
         } else {
             state = JSON.parse(stateRaw) as ModelState;
+            state.modelId = modelId;
+            if (stateResult.modelId !== modelId) {
+                await client.set(modelStateKey(runId, modelId), JSON.stringify(state));
+            }
         }
 
         if (tradesRaw) trades = JSON.parse(tradesRaw) as Trade[];
+        if (tradesRaw && tradesResult.modelId !== modelId) {
+            await client.set(modelTradesKey(runId, modelId), tradesRaw);
+        }
+        if (analyticsRaw && analyticsResult.modelId !== modelId) {
+            await client.set(modelPfAnalyticsKey(runId, modelId), analyticsRaw);
+        }
+        if (cfgRaw) {
+            const parsedConfig: RunConfig = JSON.parse(cfgRaw);
+            const config = normalizeRunConfig(parsedConfig);
+            if (JSON.stringify(config.models) !== JSON.stringify(parsedConfig.models)) {
+                await client.set(runConfigKey(runId), JSON.stringify(config));
+            }
+        }
 
         // Build a map of mbCode → position for quick lookup
         const positionByMbCode = new Map(state.positions.map((p) => [p.mbCode, p]));
@@ -241,9 +276,9 @@ export async function runGPT52TradeDecision(
             : state.positions.map((p) => p.mbCode); // fallback: only held stocks
 
         if (allMbCodes.length === 0) {
-            logger.warn("GPT-5.2: No Nifty 50 constituents in Redis — only held positions will be analysed.");
+            logger.warn("GPT-5.5: No Nifty 50 constituents in Redis — only held positions will be analysed.");
         } else {
-            logger.info(`GPT-5.2: Fetching data for ${allMbCodes.length} constituents.`);
+            logger.info(`GPT-5.5: Fetching data for ${allMbCodes.length} constituents.`);
         }
 
         // Fetch technicals + news + quote for every mbCode in parallel.
@@ -286,7 +321,7 @@ export async function runGPT52TradeDecision(
         const withPrice = stockData.filter((s) => s.currentPrice !== null).length;
         const withTech  = stockData.filter((s) => s.technicals !== null).length;
         const withNews  = stockData.filter((s) => s.news !== null).length;
-        logger.info(`GPT-5.2: Market data — ${withPrice}/${allMbCodes.length} prices, ${withTech}/${allMbCodes.length} technicals, ${withNews}/${allMbCodes.length} news.`);
+        logger.info(`GPT-5.5: Market data — ${withPrice}/${allMbCodes.length} prices, ${withTech}/${allMbCodes.length} technicals, ${withNews}/${allMbCodes.length} news.`);
 
         // Enrich state positions with fresh OHLC prices before computing analytics
         // so NAV, unrealizedPnL, cashPct, etc. in the prompt reflect current market prices.
@@ -332,21 +367,20 @@ export async function runGPT52TradeDecision(
     const systemPrompt = buildSystemPrompt();
     const userPrompt = buildUserPrompt(strategy, state, analytics, stockData);
 
-    const aiClient = getAIClient(GPT_5_2, API_VERSIONS[GPT_5_2]);
+    const aiClient = getAIClient(GPT_5_5);
 
-    logger.info(`GPT-5.2 trade decision request — run=${runId} model=${modelId}`);
+    logger.info(`GPT-5.5 trade decision request — run=${runId} model=${modelId}`);
 
     // Call LLM — retry once on parse failure
     let decision: TradeDecision | null = null;
     for (let attempt = 1; attempt <= 2; attempt++) {
         try {
             const response = await aiClient.chat.completions.create({
-                model: GPT_5_2,
+                model: GPT_5_5,
                 messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user",   content: userPrompt },
                 ],
-                temperature: 0.3,
                 response_format: { type: "json_object" },
             });
 
@@ -354,18 +388,18 @@ export async function runGPT52TradeDecision(
             decision = parseDecision(raw);
 
             if (decision) {
-                logger.info(`GPT-5.2 decision ok (attempt ${attempt}) — ${decision.orders.length} orders, confidence=${decision.confidence}`);
+                logger.info(`GPT-5.5 decision ok (attempt ${attempt}) — ${decision.orders.length} orders, confidence=${decision.confidence}`);
                 break;
             }
 
-            logger.warn(`GPT-5.2 attempt ${attempt}: failed to parse JSON — raw:`, raw.slice(0, 200));
+            logger.warn(`GPT-5.5 attempt ${attempt}: failed to parse JSON — raw:`, raw.slice(0, 200));
         } catch (err) {
-            logger.error(`GPT-5.2 attempt ${attempt} error:`, err);
+            logger.error(`GPT-5.5 attempt ${attempt} error:`, err);
         }
     }
 
     if (!decision) {
-        logger.warn("GPT-5.2: both attempts failed — returning no-trade.");
+        logger.warn("GPT-5.5: both attempts failed — returning no-trade.");
         return NO_TRADE;
     }
 
@@ -382,7 +416,7 @@ export async function runGPT52TradeDecision(
                 symbolToMbCode
             );
             logger.info(
-                `GPT-5.2: Executed ${result.executedTrades.length} trades, skipped ${result.skipped.length}.`,
+                `GPT-5.5: Executed ${result.executedTrades.length} trades, skipped ${result.skipped.length}.`,
                 result.skipped.length > 0 ? result.skipped : ""
             );
         } finally {

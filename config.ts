@@ -1,3 +1,5 @@
+import { GPT_5_5_MODEL_ID } from "@/lib/model-id";
+
 export const INDEX_MBCODE = "MBIDX70";
 export const ACTIVE_RUN_ID = "season1";
 
@@ -11,5 +13,5 @@ export const TICKER_STOCKS = [
 // Season 1 model definitions — used as fallback when run:season1:config is absent.
 // Each entry represents one LLM competitor. Add more models here as the arena scales.
 export const SEASON1_MODELS = [
-    { modelId: "gpt-5-2", name: "GPT-5.2", color: "#e6e6fa", strategy: "Quantitative Trading" },
+    { modelId: GPT_5_5_MODEL_ID, name: "GPT-5.5", color: "#e6e6fa", strategy: "Quantitative Trading" },
 ] as const;
