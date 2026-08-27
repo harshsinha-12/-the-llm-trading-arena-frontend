@@ -5,6 +5,7 @@ import { modelTradesKey, runConfigKey } from "@/lib/run-redis-keys";
 import { Trade, RunConfig } from "@/types/global";
 import Link from "next/link";
 import { getModelIdReadCandidates, normalizeModelId, normalizeRunConfig } from "@/lib/model-id";
+import TriggerDecisionButton from "@/app/components/TriggerDecisionButton";
 
 const MODEL_COLORS = ["#d7d7fd", "#d7f5d0", "#ffebeb", "#f3f3f3"];
 
@@ -79,6 +80,12 @@ export default async function TradesPage({
         </span>
         <span style={{ color: "var(--landing-muted)" }}>|</span>
         <span style={{ color: "var(--landing-muted)" }}>TRADE HISTORY</span>
+        <span style={{ flex: 1 }} />
+        <TriggerDecisionButton
+          runId={ACTIVE_RUN_ID}
+          modelId={modelId}
+          modelColor={"var(--landing-surface)"}
+        />
       </div>
 
       <section className="landing-section">
@@ -153,7 +160,10 @@ export default async function TradesPage({
                         <span style={{ color: "var(--landing-muted)" }}>—</span>
                       )}
                     </span>
-                    <span style={{ fontSize: "12px", color: "var(--landing-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", justifyContent: "flex-start", paddingLeft: "16px" }}>
+                    <span
+                      title={trade.reason ?? "No reason recorded"}
+                      style={{ fontSize: "12px", color: "var(--landing-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", justifyContent: "flex-start", paddingLeft: "16px" }}
+                    >
                       {trade.reason ?? "—"}
                     </span>
                   </div>

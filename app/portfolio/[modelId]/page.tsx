@@ -7,6 +7,7 @@ import { ModelState, RunConfig, Trade, PortfolioAnalytics, OHLC, Position } from
 import { computePortfolioAnalytics, savePortfolioAnalytics } from "@/lib/portfolio-analytics";
 import Link from "next/link";
 import { getModelIdReadCandidates, normalizeModelId, normalizeRunConfig } from "@/lib/model-id";
+import TriggerDecisionButton from "@/app/components/TriggerDecisionButton";
 
 const MODEL_COLORS = ["#d7d7fd", "#d7f5d0", "#ffebeb", "#f3f3f3"];
 
@@ -119,6 +120,12 @@ export default async function PortfolioPage({
             <span style={{ fontWeight: 800 }}>NAV: {fmtINR(state.nav)}</span>
           </>
         )}
+        <span style={{ flex: 1 }} />
+        <TriggerDecisionButton
+          runId={ACTIVE_RUN_ID}
+          modelId={modelId}
+          modelColor={"var(--landing-surface)"}
+        />
       </div>
 
       {!state ? (

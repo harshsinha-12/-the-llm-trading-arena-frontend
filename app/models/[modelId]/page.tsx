@@ -247,7 +247,10 @@ export default async function ModelPage({
                                                     <span style={{ color: "var(--landing-muted)" }}>—</span>
                                                 )}
                                             </span>
-                                            <span style={{ fontSize: "12px", color: "var(--landing-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", justifyContent: "flex-start", paddingLeft: "16px" }}>
+                                            <span
+                                                title={trade.reason ?? "No reason recorded"}
+                                                style={{ fontSize: "12px", color: "var(--landing-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", justifyContent: "flex-start", paddingLeft: "16px" }}
+                                            >
                                                 {trade.reason ?? "—"}
                                             </span>
                                         </div>
