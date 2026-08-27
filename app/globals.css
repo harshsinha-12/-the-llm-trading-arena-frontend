@@ -822,6 +822,154 @@ a:hover {
   min-width: 1120px;
 }
 
+.arena-reason-cell {
+  position: relative;
+  min-width: 0;
+  justify-content: flex-start;
+  padding-left: 16px;
+  overflow: visible;
+}
+
+.arena-reason-cell__text {
+  display: block;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--landing-muted);
+  font-size: 12px;
+}
+
+.arena-reason-cell__tooltip {
+  z-index: 40;
+  display: none;
+  width: 100%;
+  max-height: 220px;
+  overflow: auto;
+  margin-top: 8px;
+  border: 2px solid var(--landing-line);
+  background: var(--landing-bg);
+  box-shadow: 4px 4px 0 0 var(--landing-line);
+  padding: 10px 12px;
+  color: var(--landing-line);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: normal;
+  text-align: left;
+}
+
+.arena-reason-cell:hover .arena-reason-cell__tooltip,
+.arena-reason-cell:focus-within .arena-reason-cell__tooltip {
+  display: block;
+}
+
+.arena-decision-popover {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 100;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px 18px;
+  width: min(720px, calc(100vw - 40px));
+  max-height: min(620px, calc(100vh - 40px));
+  overflow: auto;
+  border: 2px solid var(--landing-line);
+  background: var(--landing-bg);
+  box-shadow: 6px 6px 0 0 var(--landing-line);
+  padding: 18px;
+  color: var(--landing-line);
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.arena-decision-popover__title {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.arena-decision-popover__close {
+  border: 0;
+  background: transparent;
+  color: var(--landing-line);
+  cursor: pointer;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.arena-decision-popover__rationale {
+  min-width: 0;
+  color: var(--landing-muted);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.arena-decision-popover__orders {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  align-content: start;
+  min-width: 180px;
+}
+
+.arena-decision-popover__order {
+  border: 2px solid var(--landing-muted);
+  padding: 8px 12px;
+  color: var(--landing-muted);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.arena-decision-popover__order.is-buy {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+.arena-decision-popover__order.is-sell {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+
+.arena-decision-popover__footer {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--landing-muted);
+  font-size: 12px;
+}
+
+.arena-decision-popover__footer a {
+  color: var(--landing-line);
+  text-decoration: underline;
+}
+
+@media (max-width: 720px) {
+  .arena-decision-popover {
+    grid-template-columns: 1fr;
+  }
+
+  .arena-decision-popover__orders {
+    min-width: 0;
+  }
+
+  .arena-decision-popover__footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 .arena-code-line {
   display: block;
   overflow-wrap: anywhere;

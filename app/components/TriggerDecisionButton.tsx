@@ -65,59 +65,38 @@ export default function TriggerDecisionButton({ runId, modelId, modelColor }: Pr
             </button>
 
             {state === "done" && result && (
-                <div
-                    style={{
-                        position: "fixed",
-                        bottom: "1.25rem",
-                        right: "1.25rem",
-                        border: "2px solid #000",
-                        backgroundColor: "#fff",
-                        padding: "1rem",
-                        maxWidth: "340px",
-                        boxShadow: "4px 4px 0 #000",
-                        zIndex: 100,
-                        fontSize: "0.8rem",
-                    }}
-                >
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                <div className="arena-decision-popover">
+                    <div className="arena-decision-popover__title">
                         <strong>Decision complete</strong>
                         <button
                             onClick={() => setState("idle")}
-                            style={{ border: "none", background: "none", cursor: "pointer", fontWeight: "bold" }}
+                            className="arena-decision-popover__close"
+                            aria-label="Close decision summary"
                         >
                             ✕
                         </button>
                     </div>
-                    <p style={{ color: "#555", marginBottom: "0.5rem", lineHeight: 1.4 }}>
+                    <p className="arena-decision-popover__rationale">
                         {result.rationale}
                     </p>
-                    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
+                    <div className="arena-decision-popover__orders">
                         {result.orders.length === 0 ? (
-                            <span style={{ color: "#999" }}>No orders — hold.</span>
+                            <span className="arena-decision-popover__order">No orders — hold.</span>
                         ) : (
                             result.orders.map((o, i) => (
                                 <span
                                     key={i}
-                                    style={{
-                                        border: "1.5px solid",
-                                        padding: "0.1rem 0.4rem",
-                                        fontSize: "0.72rem",
-                                        fontWeight: "bold",
-                                        color: o.action === "BUY" ? "var(--accent-green)" : o.action === "SELL" ? "var(--accent-red)" : "#666",
-                                        borderColor: o.action === "BUY" ? "var(--accent-green)" : o.action === "SELL" ? "var(--accent-red)" : "#666",
-                                    }}
+                                    className={`arena-decision-popover__order ${o.action === "BUY" ? "is-buy" : o.action === "SELL" ? "is-sell" : ""}`}
                                 >
                                     {o.action} {o.symbol} ×{o.quantity}
                                 </span>
                             ))
                         )}
                     </div>
-                    <div style={{ fontSize: "0.72rem", color: "#666" }}>
-                        Confidence: <strong>{Math.round(result.confidence * 100)}%</strong>
-                        &nbsp;·&nbsp;
+                    <div className="arena-decision-popover__footer">
+                        <span>Confidence: <strong>{Math.round(result.confidence * 100)}%</strong></span>
                         <a
                             href={`/models/${modelId}`}
-                            style={{ color: "#000", textDecoration: "underline", cursor: "pointer" }}
                             onClick={() => { setState("idle"); window.location.reload(); }}
                         >
                             Refresh page to see reasoning →

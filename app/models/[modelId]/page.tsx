@@ -247,11 +247,13 @@ export default async function ModelPage({
                                                     <span style={{ color: "var(--landing-muted)" }}>—</span>
                                                 )}
                                             </span>
-                                            <span
-                                                title={trade.reason ?? "No reason recorded"}
-                                                style={{ fontSize: "12px", color: "var(--landing-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", justifyContent: "flex-start", paddingLeft: "16px" }}
-                                            >
-                                                {trade.reason ?? "—"}
+                                            <span className="arena-reason-cell">
+                                                <span className="arena-reason-cell__text">{trade.reason ?? "—"}</span>
+                                                {trade.reason && (
+                                                    <span className="arena-reason-cell__tooltip">
+                                                        {trade.reason}
+                                                    </span>
+                                                )}
                                             </span>
                                         </div>
                                     ))}
