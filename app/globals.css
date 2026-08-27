@@ -822,6 +822,32 @@ a:hover {
   min-width: 1120px;
 }
 
+.arena-positions-table .landing-leaderboard__head,
+.arena-positions-table .landing-leaderboard__row {
+  min-width: 960px;
+}
+
+.arena-positions-table__row {
+  padding: 0 16px;
+}
+
+.arena-positions-table__symbol {
+  min-width: 0;
+  justify-content: flex-start;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arena-positions-table__num {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .arena-reason-cell {
   position: relative;
   min-width: 0;

@@ -97,6 +97,19 @@ export default async function PortfolioPage({
   const modelName = modelConfig?.name ?? modelId;
   const modelIdx = config?.models.findIndex((m) => m.modelId === modelId) ?? 0;
   const modelColor = MODEL_COLORS[modelIdx >= 0 ? modelIdx % MODEL_COLORS.length : 0];
+  const showMae = state?.positions.some((p) => p.mae !== undefined) ?? false;
+  const showMfe = state?.positions.some((p) => p.mfe !== undefined) ?? false;
+  const positionGridTemplate = [
+    "minmax(150px, 1.5fr)",
+    "72px",
+    "minmax(120px, 1fr)",
+    "minmax(120px, 1fr)",
+    "minmax(120px, 1fr)",
+    "minmax(110px, 1fr)",
+    "88px",
+    ...(showMae ? ["88px"] : []),
+    ...(showMfe ? ["88px"] : []),
+  ].join(" ");
 
   return (
     <main className="landing-page">
@@ -244,8 +257,8 @@ export default async function PortfolioPage({
                   <span style={{ color: "var(--landing-muted)" }}>No open positions</span>
                 </div>
               ) : (
-                <div className="landing-dashboard arena-table-scroll arena-table-scroll--wide">
-                  <div className="landing-leaderboard__head" style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr 1.5fr 1fr 1fr" + (state.positions.some(p => p.mae !== undefined) ? " 1fr" : "") + (state.positions.some(p => p.mfe !== undefined) ? " 1fr" : ""), padding: "0 16px" }}>
+                <div className="landing-dashboard arena-table-scroll arena-positions-table">
+                  <div className="landing-leaderboard__head arena-positions-table__row" style={{ gridTemplateColumns: positionGridTemplate }}>
                     <span style={{ textAlign: "left" }}>SYMBOL</span>
                     <span style={{ textAlign: "right" }}>QTY</span>
                     <span style={{ textAlign: "right" }}>AVG PRICE</span>
@@ -253,28 +266,28 @@ export default async function PortfolioPage({
                     <span style={{ textAlign: "right" }}>VALUE</span>
                     <span style={{ textAlign: "right" }}>P&L</span>
                     <span style={{ textAlign: "right" }}>P&L %</span>
-                    {state.positions.some((p) => p.mae !== undefined) && <span style={{ textAlign: "right" }}>MAE</span>}
-                    {state.positions.some((p) => p.mfe !== undefined) && <span style={{ textAlign: "right" }}>MFE</span>}
+                    {showMae && <span style={{ textAlign: "right" }}>MAE</span>}
+                    {showMfe && <span style={{ textAlign: "right" }}>MFE</span>}
                   </div>
                   <div className="landing-leaderboard" style={{ minHeight: "auto", border: 0, borderTop: "1px solid var(--landing-line)" }}>
                     {state.positions.map((pos) => (
-                      <div key={pos.symbol} className="landing-leaderboard__row" style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr 1.5fr 1fr 1fr" + (state.positions.some(p => p.mae !== undefined) ? " 1fr" : "") + (state.positions.some(p => p.mfe !== undefined) ? " 1fr" : ""), padding: "0 16px" }}>
-                        <strong style={{ justifyContent: "flex-start" }}>{pos.symbol}</strong>
-                        <span style={{ textAlign: "right" }}>{pos.quantity}</span>
-                        <span style={{ textAlign: "right" }}>{fmtINR(pos.avgPrice, 2)}</span>
-                        <span style={{ textAlign: "right", fontWeight: 700 }}>{fmtINR(pos.currentPrice, 2)}</span>
-                        <span style={{ textAlign: "right", fontWeight: 700 }}>{fmtINR(pos.quantity * pos.currentPrice)}</span>
-                        <span style={{ textAlign: "right", fontWeight: 700, color: pos.pnl >= 0 ? "var(--accent-green)" : "var(--accent-red)" }}>
+                      <div key={pos.symbol} className="landing-leaderboard__row arena-positions-table__row" style={{ gridTemplateColumns: positionGridTemplate }}>
+                        <strong className="arena-positions-table__symbol">{pos.symbol}</strong>
+                        <span className="arena-positions-table__num">{pos.quantity}</span>
+                        <span className="arena-positions-table__num">{fmtINR(pos.avgPrice, 2)}</span>
+                        <span className="arena-positions-table__num" style={{ fontWeight: 700 }}>{fmtINR(pos.currentPrice, 2)}</span>
+                        <span className="arena-positions-table__num" style={{ fontWeight: 700 }}>{fmtINR(pos.quantity * pos.currentPrice)}</span>
+                        <span className="arena-positions-table__num" style={{ fontWeight: 700, color: pos.pnl >= 0 ? "var(--accent-green)" : "var(--accent-red)" }}>
                           {pos.pnl >= 0 ? "+" : ""}{fmtINR(pos.pnl)}
                         </span>
-                        <span style={{ textAlign: "right", color: pos.pnlPct >= 0 ? "var(--accent-green)" : "var(--accent-red)" }}>
+                        <span className="arena-positions-table__num" style={{ color: pos.pnlPct >= 0 ? "var(--accent-green)" : "var(--accent-red)" }}>
                           {fmtPct(pos.pnlPct)}
                         </span>
-                        {pos.mae !== undefined && (
-                          <span style={{ textAlign: "right", color: "var(--accent-red)", fontSize: "12px" }}>{fmtPct(pos.mae)}</span>
+                        {showMae && (
+                          <span className="arena-positions-table__num" style={{ color: "var(--accent-red)", fontSize: "12px" }}>{pos.mae !== undefined ? fmtPct(pos.mae) : "—"}</span>
                         )}
-                        {pos.mfe !== undefined && (
-                          <span style={{ textAlign: "right", color: "var(--accent-green)", fontSize: "12px" }}>{fmtPct(pos.mfe)}</span>
+                        {showMfe && (
+                          <span className="arena-positions-table__num" style={{ color: "var(--accent-green)", fontSize: "12px" }}>{pos.mfe !== undefined ? fmtPct(pos.mfe) : "—"}</span>
                         )}
                       </div>
                     ))}
