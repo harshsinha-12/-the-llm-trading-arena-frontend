@@ -6,6 +6,7 @@ export const GROK_4_FAST_REASONING = "grok-4-fast-reasoning"
 export const GPT_5_MINI = "gpt-5-mini"
 export const GPT_5_NANO = "gpt-5-nano"
 export const GPT_4O_TRANSCRIBE = "gpt-4o-transcribe"
+export const TEXT_EMBEDDING_3_LARGE = "text-embedding-3-large"
 
 export type QAModel =
     | typeof GPT_5_4
