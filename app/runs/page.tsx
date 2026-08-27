@@ -68,7 +68,7 @@ export default async function RunsPage() {
                   ["Run ID", config.runId],
                   ["Start Date", config.startDate],
                   ...(config.endDate ? [["End Date", config.endDate]] : []),
-                  ["Universe", `Nifty 50 (${config.universe?.length ?? 50} stocks)`],
+                  ["Universe", `Nifty 50 (${50} stocks)`],
                   ["Status", config.status?.toUpperCase() ?? "ACTIVE"],
                 ].map(([label, value]) => (
                   <div key={label} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--landing-surface-high)", paddingBottom: "8px", fontSize: "12px" }}>
